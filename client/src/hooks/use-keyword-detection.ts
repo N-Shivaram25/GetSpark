@@ -7,7 +7,14 @@ interface DetectedKeyword {
   timestamp: number;
 }
 
-export function useKeywordDetection(transcript: string, mode: 'keyflow' | 'imgkey') {
+interface KeywordDetectionProps {
+  transcript: string;
+  speechLines: string[];
+  mode: 'keyflow' | 'imgkey';
+  onKeywordDetected: (keyword: string, mode: 'keyflow' | 'imgkey') => void;
+}
+
+export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDetected }: KeywordDetectionProps) {
   const { keywords } = useKeywords();
   const [detectedKeywords, setDetectedKeywords] = useState<DetectedKeyword[]>([]);
   const [triggeredImages, setTriggeredImages] = useState<Set<string>>(new Set());
@@ -19,23 +26,30 @@ export function useKeywordDetection(transcript: string, mode: 'keyflow' | 'imgke
   });
 
   useEffect(() => {
-    if (!transcript) return;
+    // Combine current transcript with all speech lines for full context
+    const allText = [...speechLines, transcript].join(' ').toLowerCase();
+    
+    if (!allText.trim()) return;
 
     const currentTime = Date.now();
-    const searchText = transcript.toLowerCase();
     
     if (mode === 'keyflow') {
       // Check for keywords in Keyflow mode
       keywords.forEach(keywordObj => {
         const keyword = keywordObj.keyword.toLowerCase();
         
-        // Check if keyword exists in the transcript and hasn't been triggered yet
-        if (searchText.includes(keyword) && !triggeredImages.has(keyword)) {
+        // Check if keyword exists in the text and hasn't been triggered yet
+        if (allText.includes(keyword) && !triggeredImages.has(keyword)) {
+          console.log(`Detected keyword in Keyflow mode: ${keyword}`);
+          
           setDetectedKeywords(prev => [...prev, { 
             keyword: keywordObj.keyword, 
             timestamp: currentTime 
           }]);
           setTriggeredImages(prev => new Set([...prev, keyword]));
+          
+          // Trigger image generation
+          onKeywordDetected(keywordObj.keyword, 'keyflow');
         }
       });
     } else if (mode === 'imgkey') {
@@ -43,25 +57,30 @@ export function useKeywordDetection(transcript: string, mode: 'keyflow' | 'imgke
       imgKeyMappings.forEach((mapping: any) => {
         const keyword = mapping.keyword.toLowerCase();
         
-        // Check if keyword exists in the transcript and hasn't been triggered yet
-        if (searchText.includes(keyword) && !triggeredImages.has(keyword)) {
+        // Check if keyword exists in the text and hasn't been triggered yet
+        if (allText.includes(keyword) && !triggeredImages.has(keyword)) {
+          console.log(`Detected keyword in Img Key mode: ${keyword}`);
+          
           setDetectedKeywords(prev => [...prev, { 
             keyword: mapping.keyword, 
             timestamp: currentTime 
           }]);
           setTriggeredImages(prev => new Set([...prev, keyword]));
+          
+          // Trigger custom image display
+          onKeywordDetected(mapping.keyword, 'imgkey');
         }
       });
     }
-  }, [transcript, keywords, imgKeyMappings, mode, triggeredImages]);
+  }, [transcript, speechLines, keywords, imgKeyMappings, mode, triggeredImages, onKeywordDetected]);
 
-  // Clear triggered images when transcript is cleared or mode changes
+  // Clear triggered images when speech is cleared or mode changes
   useEffect(() => {
-    if (!transcript) {
+    if (speechLines.length === 0 && !transcript) {
       setTriggeredImages(new Set());
       setDetectedKeywords([]);
     }
-  }, [transcript]);
+  }, [speechLines, transcript]);
 
   useEffect(() => {
     setTriggeredImages(new Set());

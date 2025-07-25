@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertKeywordSchema, insertImgKeyMappingSchema } from "@shared/schema";
+import { generateImageWithClipDrop } from "./clipdrop";
 import multer from "multer";
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -125,33 +126,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Keyword is required" });
       }
 
-      const clipdropApiKey = process.env.CLIPDROP_API_KEY || process.env.CLIPDROP_KEY || "default_key";
+      console.log(`Generating image for keyword: ${keyword}`);
       
-      const response = await fetch("https://clipdrop-api.co/text-to-image/v1", {
-        method: "POST",
-        headers: {
-          "x-api-key": clipdropApiKey,
-        },
-        body: new URLSearchParams({
-          prompt: keyword,
-          style: "realistic",
-        }),
-      });
-
-      if (!response.ok) {
+      try {
+        const imageUrl = await generateImageWithClipDrop(keyword);
+        res.json({ imageUrl });
+      } catch (clipdropError) {
+        console.error("ClipDrop failed, using fallback:", clipdropError);
         // Fallback to Unsplash if ClipDrop fails
         const unsplashUrl = `https://source.unsplash.com/400x300/?${encodeURIComponent(keyword)}`;
-        return res.json({ imageUrl: unsplashUrl });
+        res.json({ imageUrl: unsplashUrl });
       }
-
-      const imageBuffer = await response.arrayBuffer();
-      const imageUrl = await storage.saveImage(Buffer.from(imageBuffer), `${keyword}.png`);
-      
-      res.json({ imageUrl });
     } catch (error) {
       console.error("Error generating image:", error);
       // Fallback to Unsplash
-      const unsplashUrl = `https://source.unsplash.com/400x300/?${encodeURIComponent(req.body.keyword)}`;
+      const unsplashUrl = `https://source.unsplash.com/400x300/?${encodeURIComponent(req.body.keyword || '')}`;
       res.json({ imageUrl: unsplashUrl });
     }
   });

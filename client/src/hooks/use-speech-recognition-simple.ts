@@ -40,9 +40,27 @@ export function useSpeechRecognition() {
       setTranscript(interimTranscript);
 
       if (finalTranscript) {
+        const text = finalTranscript.trim();
+        // Check if text ends with punctuation (sentence ending)
+        const endsWithPunctuation = /[.!?]$/.test(text);
+        
         setSpeechLines(prev => {
-          const updated = [...prev, finalTranscript.trim()];
-          return updated.slice(-6); // Keep only last 6 lines
+          if (prev.length === 0) {
+            // First line
+            return [text];
+          } else {
+            const lastIndex = prev.length - 1;
+            if (endsWithPunctuation) {
+              // End of sentence - add as new line
+              const updated = [...prev, text];
+              return updated.slice(-6); // Keep only last 6 lines
+            } else {
+              // Continue on same line
+              const updated = [...prev];
+              updated[lastIndex] = (updated[lastIndex] || '') + ' ' + text;
+              return updated.slice(-6);
+            }
+          }
         });
         setTranscript(''); // Clear interim transcript
       }
