@@ -1,0 +1,60 @@
+🎨 1. Landing Page Design
+
+    Display only the project title: “Get Spark” using a stylish, creative font (no subtext or extra elements).
+
+    Use a clean, light theme — avoid dark backgrounds and remove excessive vibrance.
+
+    Below the title, place a simple, centered “Get Started” button.
+
+    On click, it should navigate to the main application interface.
+
+🖼️ 2. Main Interface Page (Light Theme)
+
+    Keep the overall design in a light-colored theme for better readability and calm aesthetics.
+
+    At the top right, show two buttons:
+
+        ✅ Insert Keywords (for inputting words/phrases)
+
+        ✅ Mode Selection: “Keyflow” and “Img Key Mode”
+
+🔁 3. Voice-to-Text Flow Fix
+
+    While speaking:
+
+        If there is a pause or break in voice, the text should not automatically move to a new line.
+
+        Text should continue on the same line until it reaches the end or punctuation (like . or ,) is spoken.
+
+        Only use punctuation rules (not silence) to determine line breaks.
+
+📸 4. Img Key Mode Keyword Matching Fix
+
+    Currently, when keywords appear in the middle of a spoken sentence, the system fails to detect and trigger image display.
+
+    Fix this by:
+
+        Ensuring real-time keyword detection within continuous sentence flow, not just isolated words.
+
+        Matching should work even if the keyword is embedded in a longer sentence.
+
+    When a keyword is spoken (and mapped):
+
+        The corresponding image should appear immediately below the text for the configured duration.
+
+        Follow existing layout: bullet point (if selected), then image, then line spacing.
+
+✅ Final Notes for Developer
+
+    Ensure sentence box respects:
+
+        No new line on silence — continue until punctuation.
+
+        Live keyword matching mid-sentence.
+
+    Remove dark theme entirely from both landing and main interface.
+
+    Use modern, elegant design (light grey/white tones, soft shadows, minimalistic look).
+
+    Ensure user interactions are smooth and visuals trigger accurately in Img Key Mode.
+

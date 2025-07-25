@@ -17,20 +17,20 @@ export default function SpeechDisplay({ speechLines, transcript }: SpeechDisplay
   return (
     <div
       ref={containerRef}
-      className="border border-purple-500/30 rounded-xl p-6 glass-morph min-h-[180px] font-mono text-sm leading-relaxed overflow-hidden shadow-2xl"
+      className="border border-border rounded-xl p-6 bg-card min-h-[180px] font-mono text-sm leading-relaxed overflow-hidden shadow-sm"
     >
-      <div className="space-y-1 text-white">
+      <div className="space-y-1 text-card-foreground">
         {speechLines.length === 0 && !transcript ? (
-          <div className="text-purple-300 italic">Start speaking to see your words appear here...</div>
+          <div className="text-muted-foreground italic">Start speaking to see your words appear here...</div>
         ) : (
           <>
             {speechLines.map((line, index) => (
-              <div key={index} className="text-white">
+              <div key={index} className="text-card-foreground">
                 {line}
               </div>
             ))}
             {transcript && (
-              <div className="text-white opacity-75">
+              <div className="text-card-foreground opacity-75">
                 {transcript}
               </div>
             )}

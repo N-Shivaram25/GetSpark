@@ -3,35 +3,30 @@
 @tailwind utilities;
 
 :root {
-  --background: hsl(220, 13%, 9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(217, 19%, 15%);
-  --muted-foreground: hsl(215, 20%, 65%);
-  --popover: hsl(220, 13%, 12%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(220, 13%, 12%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(217, 19%, 18%);
-  --input: hsl(217, 19%, 18%);
-  --primary: hsl(280, 100%, 70%);
-  --primary-foreground: hsl(0, 0%, 0%);
-  --secondary: hsl(217, 19%, 15%);
-  --secondary-foreground: hsl(0, 0%, 98%);
-  --accent: hsl(217, 19%, 15%);
-  --accent-foreground: hsl(0, 0%, 98%);
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(0, 0%, 3.9%);
+  --muted: hsl(0, 0%, 96.1%);
+  --muted-foreground: hsl(0, 0%, 45.1%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(0, 0%, 3.9%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(0, 0%, 3.9%);
+  --border: hsl(0, 0%, 89.8%);
+  --input: hsl(0, 0%, 89.8%);
+  --primary: hsl(0, 0%, 9%);
+  --primary-foreground: hsl(0, 0%, 98%);
+  --secondary: hsl(0, 0%, 96.1%);
+  --secondary-foreground: hsl(0, 0%, 9%);
+  --accent: hsl(0, 0%, 96.1%);
+  --accent-foreground: hsl(0, 0%, 9%);
   --destructive: hsl(0, 84.2%, 60.2%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(280, 100%, 70%);
-  --radius: 0.75rem;
+  --ring: hsl(0, 0%, 3.9%);
+  --radius: 0.5rem;
   
-  /* Custom vibrant colors */
-  --neon-pink: hsl(320, 100%, 60%);
-  --neon-blue: hsl(200, 100%, 60%);
-  --neon-green: hsl(120, 100%, 50%);
-  --neon-purple: hsl(280, 100%, 70%);
-  --neon-orange: hsl(30, 100%, 60%);
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  /* Voice button effects */
+  --voice-active: hsl(120, 100%, 40%);
+  --voice-inactive: hsl(0, 0%, 9%);
 }
 
 .dark {
@@ -95,77 +90,53 @@
   }
 }
 
-/* Neon glow effects */
-@keyframes neon-glow {
-  0%, 100% {
-    text-shadow: 0 0 5px var(--neon-purple), 0 0 10px var(--neon-purple), 0 0 15px var(--neon-purple);
-  }
-  50% {
-    text-shadow: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple), 0 0 30px var(--neon-purple);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(5deg);
-  }
-}
-
-@keyframes gradient-shift {
+/* Voice button glow effect */
+@keyframes pulseGlow {
   0% {
-    background-position: 0% 50%;
+    box-shadow: 0 0 10px var(--voice-active), 0 0 20px var(--voice-active);
   }
   50% {
-    background-position: 100% 50%;
+    box-shadow: 0 0 15px #81c784, 0 0 30px #81c784;
   }
   100% {
-    background-position: 0% 50%;
+    box-shadow: 0 0 10px var(--voice-active), 0 0 20px var(--voice-active);
   }
 }
 
-.neon-text {
-  animation: neon-glow 2s ease-in-out infinite alternate;
+/* Circular wave animation */
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 0;
+  }
 }
 
-.float-animation {
-  animation: float 6s ease-in-out infinite;
+.voice-button-listening {
+  animation: pulseGlow 1.5s infinite;
+  background-color: var(--voice-active) !important;
+  color: white;
 }
 
-.gradient-shift {
-  background: linear-gradient(-45deg, var(--neon-pink), var(--neon-purple), var(--neon-blue), var(--neon-green));
-  background-size: 400% 400%;
-  animation: gradient-shift 15s ease infinite;
-}
-
-/* Glass morphism effect */
-.glass-morph {
-  background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
-}
-
-/* Particle background */
-.particle-bg {
-  position: relative;
-  overflow: hidden;
-}
-
-.particle-bg::before {
-  content: '';
+.mic-circle {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 20%, var(--neon-purple) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, var(--neon-pink) 0%, transparent 50%),
-    radial-gradient(circle at 40% 60%, var(--neon-blue) 0%, transparent 50%);
-  opacity: 0.1;
-  animation: float 20s ease-in-out infinite;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px solid var(--voice-active);
+  opacity: 0;
+  animation: ripple 1.5s infinite;
+  z-index: -1;
+}
+
+.mic-circle:nth-child(2) {
+  animation-delay: 0.5s;
 }
 
 /* Image fade in animation */

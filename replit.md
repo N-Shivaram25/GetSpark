@@ -123,19 +123,22 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (January 2025)
 
-### UI/UX Improvements
-- **Color Scheme Update**: Changed from black/gray to light blue and white theme
-- **Landing Page Enhancement**: Added animated background elements and blue gradient design
-- **Fixed Voice Button**: Implemented floating circular voice control button in bottom-right with wave animations
-- **Mode-Specific UI**: Insert Keywords button and keyword count only visible in Keyflow mode
-- **Multiple Image Upload**: Enhanced Img Key mode to support adding multiple images incrementally
-- **Visual Feedback**: Added image counters and improved upload interface
+### Core Functionality Implementation
+- **Keyword Detection System**: Implemented real-time keyword detection for both Keyflow and Img Key modes using `useKeywordDetection` hook
+- **Speech Recognition**: Simplified speech recognition system with continuous speech capture and 6-line scrolling display
+- **Voice Button Effects**: Added sophisticated voice button animations including:
+  - Glow pulse animation when listening (green glow with box-shadow effects)
+  - Microphone/stop icon toggle based on listening state
+  - Circular wave animations around button during recording
+- **Light Theme Migration**: Switched from dark cyberpunk theme to clean, minimal light theme for better readability
+- **Mode Integration**: Keywords detection works seamlessly across both Keyflow and Img Key modes
+- **Real-time Feedback**: Display detected keywords with timestamps as they are found in speech
 
-### Design System Changes
-- **Theme**: Dark theme with vibrant neon accents
-- **Primary colors**: Purple, pink, cyan gradients with glass morphism
-- **Background**: Black with animated particle effects and floating neon orbs
-- **Interactive elements**: Glass morphism with glowing borders and hover effects
-- **Voice button**: 64px circular button with animated rainbow gradient and wave effects
-- **Typography**: Neon glow effects on headings with white text on dark backgrounds
-- **Effects**: Floating animations, gradient shifts, backdrop blur, and glass morphism throughout
+### Design System Changes (January 2025)
+- **Theme**: Clean light theme with minimal design
+- **Primary colors**: Simple black/gray color scheme with white backgrounds
+- **Background**: Light gray to white gradients for better readability
+- **Interactive elements**: Standard button styles with subtle shadows
+- **Voice button**: 64px circular button with green glow pulse animation when active, microphone/stop icon toggle, and circular wave animations
+- **Typography**: Standard text colors optimized for readability
+- **Effects**: Focused on voice button animations - pulse glow, circular waves, and smooth transitions

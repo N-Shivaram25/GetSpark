@@ -12,49 +12,12 @@ interface DisplayedImage {
   source: 'clipdrop' | 'custom';
 }
 
-export function useSpeechRecognition(mode: 'keyflow' | 'imgkey') {
+export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [speechLines, setSpeechLines] = useState<string[]>([]);
-  const [detectedKeywords, setDetectedKeywords] = useState<Set<string>>(new Set());
-  const [bulletPoints, setBulletPoints] = useState<string[]>([]);
-  const [displayedImages, setDisplayedImages] = useState<DisplayedImage[]>([]);
   
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: keywords = [] } = useQuery<Keyword[]>({
-    queryKey: ['/api/keywords'],
-  });
-
-  const { data: imgKeyMappings = [] } = useQuery<ImgKeyMapping[]>({
-    queryKey: ['/api/img-key-mappings'],
-  });
-
-  const generateImageMutation = useMutation({
-    mutationFn: async (keyword: string) => {
-      const response = await apiRequest("POST", "/api/generate-image", { keyword });
-      return response.json();
-    },
-    onSuccess: (data, keyword) => {
-      const newImage: DisplayedImage = {
-        id: Date.now().toString(),
-        url: data.imageUrl,
-        keyword,
-        timeLeft: 6,
-        source: 'clipdrop'
-      };
-      setDisplayedImages(prev => [...prev, newImage]);
-    },
-    onError: () => {
-      toast({
-        title: "Failed to generate image",
-        description: "Could not generate image from keyword",
-        variant: "destructive",
-      });
-    },
-  });
 
   const markKeywordUsedMutation = useMutation({
     mutationFn: async (keywordId: string) => {
