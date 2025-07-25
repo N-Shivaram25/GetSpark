@@ -38,15 +38,15 @@ export default function MainPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white relative">
+    <div className="min-h-screen bg-black particle-bg relative">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-blue-200 px-6 py-4 shadow-sm">
+      <header className="glass-morph border-b border-purple-500/30 px-6 py-4 shadow-2xl">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
-              <Mic className="text-white" size={20} />
+            <div className="w-10 h-10 gradient-shift rounded-lg flex items-center justify-center shadow-lg">
+              <Mic className="text-white drop-shadow-lg" size={20} />
             </div>
-            <h2 className="text-2xl font-bold text-blue-900">Get Spark</h2>
+            <h2 className="text-2xl font-bold text-white neon-text">Get Spark</h2>
           </div>
 
           {/* Top Right Controls */}
@@ -56,7 +56,7 @@ export default function MainPage() {
               <Button
                 variant="outline"
                 onClick={() => setShowKeywordsModal(true)}
-                className="flex items-center space-x-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+                className="flex items-center space-x-2 border-purple-500/50 text-purple-300 hover:bg-purple-500/20 hover:text-white glass-morph"
               >
                 <Plus size={16} />
                 <span>Insert Keywords</span>
@@ -64,7 +64,7 @@ export default function MainPage() {
             )}
 
             {/* Mode Toggle Buttons */}
-            <div className="flex bg-blue-50 rounded-lg p-1 border border-blue-200">
+            <div className="flex glass-morph rounded-lg p-1 border border-purple-500/30">
               <Button
                 size="sm"
                 variant={currentMode === 'keyflow' ? 'default' : 'ghost'}
@@ -72,8 +72,8 @@ export default function MainPage() {
                 className={cn(
                   "text-sm font-medium transition-colors",
                   currentMode === 'keyflow' 
-                    ? "bg-blue-600 text-white hover:bg-blue-700" 
-                    : "text-blue-700 hover:bg-blue-100"
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700" 
+                    : "text-purple-300 hover:bg-purple-500/20 hover:text-white"
                 )}
               >
                 Keyflow Mode
@@ -85,8 +85,8 @@ export default function MainPage() {
                 className={cn(
                   "text-sm font-medium transition-colors",
                   currentMode === 'imgkey' 
-                    ? "bg-blue-600 text-white hover:bg-blue-700" 
-                    : "text-blue-700 hover:bg-blue-100"
+                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white hover:from-cyan-700 hover:to-blue-700" 
+                    : "text-purple-300 hover:bg-purple-500/20 hover:text-white"
                 )}
               >
                 Img Key Mode
@@ -101,12 +101,12 @@ export default function MainPage() {
         {/* Voice Display Box */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-blue-900">Live Speech</h3>
+            <h3 className="text-lg font-semibold text-white">Live Speech</h3>
             <div className="flex items-center space-x-3">
               {isListening && (
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-blue-600">Recording...</span>
+                  <span className="text-sm text-green-400">Recording...</span>
                 </div>
               )}
             </div>
@@ -120,10 +120,10 @@ export default function MainPage() {
 
         {/* Keywords Status - Only show in Keyflow mode */}
         {currentMode === 'keyflow' && (
-          <div className="mb-6 p-4 bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm">
+          <div className="mb-6 p-4 glass-morph rounded-lg border border-purple-500/30 shadow-2xl">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-blue-900">Active Keywords</h4>
-              <span className="text-sm text-blue-600">{keywords.length} keywords loaded</span>
+              <h4 className="font-medium text-white">Active Keywords</h4>
+              <span className="text-sm text-purple-300">{keywords.length} keywords loaded</span>
             </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {keywords.length > 0 ? (
@@ -131,17 +131,17 @@ export default function MainPage() {
                 <span
                   key={keyword.id}
                   className={cn(
-                    "px-3 py-1 rounded-full text-sm",
+                    "px-3 py-1 rounded-full text-sm border",
                     keyword.used 
-                      ? "bg-gray-100 text-gray-600 line-through"
-                      : "bg-blue-100 text-blue-700"
+                      ? "bg-gray-800 text-gray-500 line-through border-gray-600"
+                      : "bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-purple-300 border-purple-500/50"
                   )}
                 >
                   {keyword.keyword}
                 </span>
               ))
             ) : (
-              <span className="text-sm text-blue-600 italic">No keywords added yet</span>
+              <span className="text-sm text-purple-300 italic">No keywords added yet</span>
             )}
           </div>
         </div>
@@ -197,17 +197,17 @@ export default function MainPage() {
           {/* Animated waves when listening */}
           {isListening && (
             <>
-              <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-ping opacity-75"></div>
-              <div className="absolute inset-0 rounded-full border-2 border-blue-300 animate-ping opacity-50" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute inset-0 rounded-full border-2 border-purple-400 animate-ping opacity-75"></div>
+              <div className="absolute inset-0 rounded-full border-2 border-pink-400 animate-ping opacity-50" style={{ animationDelay: '0.5s' }}></div>
             </>
           )}
           <Button
             onClick={isListening ? stopListening : startListening}
             className={cn(
-              "w-16 h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110",
+              "w-16 h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110 glass-morph border-2",
               isListening 
-                ? "bg-red-500 hover:bg-red-600 animate-pulse-recording" 
-                : "bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                ? "bg-red-500 hover:bg-red-600 animate-pulse-recording border-red-400/50" 
+                : "gradient-shift border-purple-500/50 hover:border-purple-400"
             )}
           >
             {isListening ? <MicOff size={24} /> : <Mic size={24} />}

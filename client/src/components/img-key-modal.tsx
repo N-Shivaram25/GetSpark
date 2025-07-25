@@ -162,7 +162,7 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
             </Label>
             <div className="space-y-3">
               <div 
-                className="border-2 border-dashed border-blue-200 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer bg-blue-50/50"
+                className="border-2 border-dashed border-purple-500/50 rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer glass-morph"
                 onClick={() => fileInputRef.current?.click()}
               >
                 <input
@@ -173,19 +173,19 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
                   className="hidden"
                   onChange={handleFileSelect}
                 />
-                <Upload className="mx-auto text-blue-600 mb-2" size={24} />
-                <p className="text-blue-700">Drop images here or click to upload</p>
-                <p className="text-sm text-blue-600 mt-1">You can add multiple images one by one</p>
+                <Upload className="mx-auto text-purple-400 mb-2" size={24} />
+                <p className="text-white">Drop images here or click to upload</p>
+                <p className="text-sm text-purple-300 mt-1">You can add multiple images one by one</p>
               </div>
               
               {selectedFiles.length > 0 && (
-                <div className="flex items-center justify-between text-sm text-blue-700 bg-blue-50 p-2 rounded-lg">
+                <div className="flex items-center justify-between text-sm text-white glass-morph p-2 rounded-lg border border-purple-500/30">
                   <span>{selectedFiles.length} image(s) selected</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedFiles([])}
-                    className="text-blue-600 hover:text-blue-800 h-auto p-1"
+                    className="text-purple-300 hover:text-white h-auto p-1"
                   >
                     Clear All
                   </Button>
@@ -200,7 +200,7 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
-                      className="w-full h-20 object-cover rounded-lg border border-blue-200"
+                      className="w-full h-20 object-cover rounded-lg border border-purple-500/50"
                     />
                     <Button
                       variant="destructive"
@@ -251,7 +251,7 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
             <Button
               onClick={handleSaveMapping}
               disabled={addMappingMutation.isPending}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
+              className="flex-1 gradient-shift text-black font-bold hover:scale-105 transition-transform glass-morph border border-purple-500/50"
             >
               {addMappingMutation.isPending ? "Saving..." : "Save Mapping"}
             </Button>

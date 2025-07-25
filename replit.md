@@ -132,7 +132,10 @@ Preferred communication style: Simple, everyday language.
 - **Visual Feedback**: Added image counters and improved upload interface
 
 ### Design System Changes
-- Primary colors: Blue gradients (blue-600 to blue-700)
-- Background: Light blue to white gradients with backdrop blur effects
-- Interactive elements: Blue color scheme with hover states
-- Voice button: 64px circular button with animated waves during recording
+- **Theme**: Dark theme with vibrant neon accents
+- **Primary colors**: Purple, pink, cyan gradients with glass morphism
+- **Background**: Black with animated particle effects and floating neon orbs
+- **Interactive elements**: Glass morphism with glowing borders and hover effects
+- **Voice button**: 64px circular button with animated rainbow gradient and wave effects
+- **Typography**: Neon glow effects on headings with white text on dark backgrounds
+- **Effects**: Floating animations, gradient shifts, backdrop blur, and glass morphism throughout
