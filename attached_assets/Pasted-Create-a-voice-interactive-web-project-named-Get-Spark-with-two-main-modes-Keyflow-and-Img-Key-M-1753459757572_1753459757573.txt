@@ -1,0 +1,83 @@
+Create a voice-interactive web project named “Get Spark” with two main modes — Keyflow and Img Key Mode — focused on visualizing spoken sentences and keywords using the ClipDrop API or user-mapped images.
+🧭 1. Landing Page
+
+    Title of the website: “Get Spark”
+
+    Below the title, place a black button labeled “Get Started”
+
+    On clicking the button, the user is navigated to the main interaction page
+
+🧑‍💻 2. Main Interaction Page (after clicking “Get Started”)
+🔲 Top Right Corner Features:
+
+    Insert Keywords – A button or option to allow users to input words or sentences one at a time.
+
+        There should be a "Done" button to finish keyword entry.
+
+    Keyflow Mode – A button that activates core speech-to-visual functionality using keywords and the ClipDrop API.
+
+    Img Key Mode – Another button next to “Keyflow Mode” that enables custom image-to-keyword mapping with additional options.
+
+🧠 3. Keyflow Mode Functionality
+
+    After inserting keywords using the “Insert Keywords” option:
+
+        As the user speaks sentences, the app:
+
+            Captures and displays the spoken text dynamically at the top of the page, within a fixed box having a light black border.
+
+            The box should display only 6 lines of text at a time.
+
+            When it reaches the 6th line:
+
+                New sentence begins typing from the end space of the 6th line.
+
+                Existing lines shift upward, and the topmost (1st) line disappears.
+
+    When any of the inserted keywords are spoken for the first time:
+
+        An image is generated and displayed below the sentence box using the ClipDrop API.
+
+        The image:
+
+            Is shown only the first time the keyword is detected.
+
+            Appears for 6 seconds, then disappears automatically.
+
+        Any repeat of that keyword will not trigger the image again.
+
+🖼️ 4. Img Key Mode Functionality
+
+    In this mode, users can manually create mappings between keywords/sentences and one or more images.
+
+    The input interface should include:
+
+        A box to input the keyword or sentence.
+
+        A corresponding box to upload one or more images.
+
+        An option to define the time duration (in seconds) for how long the image(s) should be shown.
+
+        A “Bullet Points” toggle option.
+
+🎤 During Voice Input in Img Key Mode:
+
+    Spoken sentences should appear in the same 6-line box format as in Keyflow Mode.
+
+    If a keyword (with mapped images) is detected in the spoken input:
+
+        The sentence should appear as a bullet point, if the bullet option was selected.
+
+        A 2-line space should appear between the fixed 6-line sentence box and the bullet point(s).
+
+        If an image is mapped:
+
+            It should appear below the bullet point, with a 1-line space below the image.
+
+            If two or more images are mapped to the same keyword, they should appear side-by-side.
+
+        The 6-line sentence box should dynamically resize to accommodate bullet points and images with the above spacing.
+
+    If the image is optional (not added), only the bullet point is shown.
+
+    All display times for the images are based on the user-defined time value during keyword-image mapping.
