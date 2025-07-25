@@ -38,38 +38,42 @@ export default function MainPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white relative">
       {/* Header */}
-      <header className="bg-white border-b border-border px-6 py-4">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-blue-200 px-6 py-4 shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-black rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
               <Mic className="text-white" size={20} />
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Get Spark</h2>
+            <h2 className="text-2xl font-bold text-blue-900">Get Spark</h2>
           </div>
 
           {/* Top Right Controls */}
           <div className="flex items-center space-x-4">
-            {/* Insert Keywords Button */}
-            <Button
-              variant="outline"
-              onClick={() => setShowKeywordsModal(true)}
-              className="flex items-center space-x-2"
-            >
-              <Plus size={16} />
-              <span>Insert Keywords</span>
-            </Button>
+            {/* Insert Keywords Button - Only show in Keyflow mode */}
+            {currentMode === 'keyflow' && (
+              <Button
+                variant="outline"
+                onClick={() => setShowKeywordsModal(true)}
+                className="flex items-center space-x-2 border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <Plus size={16} />
+                <span>Insert Keywords</span>
+              </Button>
+            )}
 
             {/* Mode Toggle Buttons */}
-            <div className="flex bg-muted rounded-lg p-1">
+            <div className="flex bg-blue-50 rounded-lg p-1 border border-blue-200">
               <Button
                 size="sm"
                 variant={currentMode === 'keyflow' ? 'default' : 'ghost'}
                 onClick={() => handleModeSwitch('keyflow')}
                 className={cn(
                   "text-sm font-medium transition-colors",
-                  currentMode === 'keyflow' && "bg-black text-white"
+                  currentMode === 'keyflow' 
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "text-blue-700 hover:bg-blue-100"
                 )}
               >
                 Keyflow Mode
@@ -80,7 +84,9 @@ export default function MainPage() {
                 onClick={() => handleModeSwitch('imgkey')}
                 className={cn(
                   "text-sm font-medium transition-colors",
-                  currentMode === 'imgkey' && "bg-black text-white"
+                  currentMode === 'imgkey' 
+                    ? "bg-blue-600 text-white hover:bg-blue-700" 
+                    : "text-blue-700 hover:bg-blue-100"
                 )}
               >
                 Img Key Mode
@@ -95,26 +101,14 @@ export default function MainPage() {
         {/* Voice Display Box */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Live Speech</h3>
+            <h3 className="text-lg font-semibold text-blue-900">Live Speech</h3>
             <div className="flex items-center space-x-3">
               {isListening && (
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm text-muted-foreground">Recording...</span>
+                  <span className="text-sm text-blue-600">Recording...</span>
                 </div>
               )}
-              <Button
-                onClick={isListening ? stopListening : startListening}
-                className={cn(
-                  "flex items-center space-x-2 transition-colors",
-                  isListening 
-                    ? "bg-red-600 hover:bg-red-700" 
-                    : "bg-indigo-600 hover:bg-indigo-700"
-                )}
-              >
-                {isListening ? <MicOff size={16} /> : <Mic size={16} />}
-                <span>{isListening ? "Stop Voice" : "Start Voice"}</span>
-              </Button>
             </div>
           </div>
 
@@ -124,12 +118,13 @@ export default function MainPage() {
           />
         </div>
 
-        {/* Keywords Status */}
-        <div className="mb-6 p-4 bg-muted rounded-lg border border-border">
-          <div className="flex items-center justify-between">
-            <h4 className="font-medium text-foreground">Active Keywords</h4>
-            <span className="text-sm text-muted-foreground">{keywords.length} keywords loaded</span>
-          </div>
+        {/* Keywords Status - Only show in Keyflow mode */}
+        {currentMode === 'keyflow' && (
+          <div className="mb-6 p-4 bg-white/60 backdrop-blur-sm rounded-lg border border-blue-200 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-blue-900">Active Keywords</h4>
+              <span className="text-sm text-blue-600">{keywords.length} keywords loaded</span>
+            </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {keywords.length > 0 ? (
               keywords.map((keyword) => (
@@ -139,17 +134,18 @@ export default function MainPage() {
                     "px-3 py-1 rounded-full text-sm",
                     keyword.used 
                       ? "bg-gray-100 text-gray-600 line-through"
-                      : "bg-indigo-100 text-indigo-700"
+                      : "bg-blue-100 text-blue-700"
                   )}
                 >
                   {keyword.keyword}
                 </span>
               ))
             ) : (
-              <span className="text-sm text-muted-foreground italic">No keywords added yet</span>
+              <span className="text-sm text-blue-600 italic">No keywords added yet</span>
             )}
           </div>
         </div>
+        )}
 
         {/* Img Key Mode Bullet Points Area */}
         {currentMode === 'imgkey' && (
@@ -194,6 +190,30 @@ export default function MainPage() {
           </div>
         </div>
       </main>
+
+      {/* Fixed Voice Control Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <div className="relative">
+          {/* Animated waves when listening */}
+          {isListening && (
+            <>
+              <div className="absolute inset-0 rounded-full border-2 border-blue-400 animate-ping opacity-75"></div>
+              <div className="absolute inset-0 rounded-full border-2 border-blue-300 animate-ping opacity-50" style={{ animationDelay: '0.5s' }}></div>
+            </>
+          )}
+          <Button
+            onClick={isListening ? stopListening : startListening}
+            className={cn(
+              "w-16 h-16 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-110",
+              isListening 
+                ? "bg-red-500 hover:bg-red-600 animate-pulse-recording" 
+                : "bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+            )}
+          >
+            {isListening ? <MicOff size={24} /> : <Mic size={24} />}
+          </Button>
+        </div>
+      </div>
 
       {/* Modals */}
       {showKeywordsModal && (

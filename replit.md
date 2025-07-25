@@ -120,3 +120,19 @@ Preferred communication style: Simple, everyday language.
 - **Problem**: Image storage for custom mappings
 - **Solution**: Memory storage for development, extensible to cloud storage
 - **Rationale**: Simple implementation, easy to extend to S3/CloudFront later
+
+## Recent Changes (January 2025)
+
+### UI/UX Improvements
+- **Color Scheme Update**: Changed from black/gray to light blue and white theme
+- **Landing Page Enhancement**: Added animated background elements and blue gradient design
+- **Fixed Voice Button**: Implemented floating circular voice control button in bottom-right with wave animations
+- **Mode-Specific UI**: Insert Keywords button and keyword count only visible in Keyflow mode
+- **Multiple Image Upload**: Enhanced Img Key mode to support adding multiple images incrementally
+- **Visual Feedback**: Added image counters and improved upload interface
+
+### Design System Changes
+- Primary colors: Blue gradients (blue-600 to blue-700)
+- Background: Light blue to white gradients with backdrop blur effects
+- Interactive elements: Blue color scheme with hover states
+- Voice button: 64px circular button with animated waves during recording

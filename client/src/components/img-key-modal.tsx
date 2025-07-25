@@ -97,7 +97,8 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setSelectedFiles(Array.from(e.target.files));
+      const newFiles = Array.from(e.target.files);
+      setSelectedFiles(prev => [...prev, ...newFiles]);
     }
   };
 
@@ -159,31 +160,47 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
             <Label className="text-sm font-medium text-foreground mb-2 block">
               Upload Images
             </Label>
-            <div 
-              className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileSelect}
-              />
-              <Upload className="mx-auto text-muted-foreground mb-2" size={24} />
-              <p className="text-muted-foreground">Drop images here or click to upload</p>
-              <p className="text-sm text-muted-foreground mt-1">Support multiple images for side-by-side display</p>
+            <div className="space-y-3">
+              <div 
+                className="border-2 border-dashed border-blue-200 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer bg-blue-50/50"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileSelect}
+                />
+                <Upload className="mx-auto text-blue-600 mb-2" size={24} />
+                <p className="text-blue-700">Drop images here or click to upload</p>
+                <p className="text-sm text-blue-600 mt-1">You can add multiple images one by one</p>
+              </div>
+              
+              {selectedFiles.length > 0 && (
+                <div className="flex items-center justify-between text-sm text-blue-700 bg-blue-50 p-2 rounded-lg">
+                  <span>{selectedFiles.length} image(s) selected</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedFiles([])}
+                    className="text-blue-600 hover:text-blue-800 h-auto p-1"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              )}
             </div>
             
             {selectedFiles.length > 0 && (
               <div className="mt-3 grid grid-cols-2 md:grid-cols-3 gap-3">
                 {selectedFiles.map((file, index) => (
-                  <div key={index} className="relative group">
+                  <div key={`${file.name}-${index}`} className="relative group">
                     <img
                       src={URL.createObjectURL(file)}
                       alt={file.name}
-                      className="w-full h-20 object-cover rounded-lg border"
+                      className="w-full h-20 object-cover rounded-lg border border-blue-200"
                     />
                     <Button
                       variant="destructive"
@@ -193,6 +210,9 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
                     >
                       <X size={12} />
                     </Button>
+                    <div className="absolute bottom-1 left-1 bg-black/70 text-white text-xs px-1 py-0.5 rounded">
+                      {index + 1}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -231,7 +251,7 @@ export default function ImgKeyModal({ isOpen, onClose, mappings }: ImgKeyModalPr
             <Button
               onClick={handleSaveMapping}
               disabled={addMappingMutation.isPending}
-              className="flex-1 bg-black text-white hover:bg-gray-800"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             >
               {addMappingMutation.isPending ? "Saving..." : "Save Mapping"}
             </Button>

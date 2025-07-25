@@ -104,7 +104,7 @@ mountain peak"
             <Button
               onClick={handleDone}
               disabled={addKeywordsMutation.isPending}
-              className="flex-1 bg-black text-white hover:bg-gray-800"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800"
             >
               {addKeywordsMutation.isPending ? "Adding..." : "Done"}
             </Button>
