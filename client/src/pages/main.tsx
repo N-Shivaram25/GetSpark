@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Plus, MicOff } from "lucide-react";
 import SpeechDisplay from "@/components/speech-display";
@@ -50,7 +50,13 @@ export default function MainPage() {
     onKeywordDetected: handleKeywordDetected
   });
 
-  const { data: imgKeyMappings = [] } = useQuery({
+  const { data: imgKeyMappings = [] } = useQuery<Array<{
+    id: string;
+    keyword: string;
+    duration: number | null;
+    imageUrls: string[];
+    bulletPoints: boolean | null;
+  }>>({
     queryKey: ['/api/img-key-mappings'],
   });
 

@@ -8,10 +8,15 @@ export async function generateImageWithClipDrop(prompt: string): Promise<string>
   }
 
   try {
+    // Enhanced prompt for better accuracy
+    const enhancedPrompt = `high quality, detailed, realistic, ${prompt}`;
+    
     const form = new FormData();
-    form.append('prompt', prompt);
+    form.append('prompt', enhancedPrompt);
+    form.append('width', '1024');
+    form.append('height', '1024');
 
-    console.log('Attempting ClipDrop generation for:', prompt);
+    console.log('Attempting ClipDrop generation for enhanced prompt:', enhancedPrompt);
     
     const response = await fetch('https://clipdrop-api.co/text-to-image/v1', {
       method: 'POST',
@@ -27,7 +32,7 @@ export async function generateImageWithClipDrop(prompt: string): Promise<string>
       throw new Error(`ClipDrop API error: ${response.status} - ${errorText}`);
     }
 
-    console.log('ClipDrop generation successful');
+    console.log('ClipDrop generation successful for:', prompt);
     
     // Get the image as a buffer
     const imageBuffer = await response.arrayBuffer();

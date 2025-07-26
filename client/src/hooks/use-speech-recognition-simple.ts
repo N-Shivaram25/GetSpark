@@ -16,9 +16,11 @@ export function useSpeechRecognition() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     
+    // Enhanced speech recognition settings for better accuracy
     recognitionRef.current.continuous = true;
     recognitionRef.current.interimResults = true;
     recognitionRef.current.lang = 'en-US';
+    recognitionRef.current.maxAlternatives = 3;
 
     recognitionRef.current.onstart = () => {
       setIsListening(true);
