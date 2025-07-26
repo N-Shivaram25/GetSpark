@@ -143,6 +143,9 @@ export default function MainPage() {
           <SpeechDisplay 
             speechLines={speechLines}
             transcript={transcript}
+            isListening={isListening}
+            mode={currentMode}
+            detectedKeywords={detectedKeywords}
           />
         </div>
 

@@ -14,16 +14,16 @@ export function useImageGeneration() {
   const [displayedImages, setDisplayedImages] = useState<DisplayedImage[]>([]);
 
   const generateImageMutation = useMutation({
-    mutationFn: async (keyword: string) => {
-      const response = await apiRequest("POST", "/api/generate-image", { keyword });
+    mutationFn: async ({ keyword, duration }: { keyword: string; duration: number }) => {
+      const response = await apiRequest("POST", "/api/generate-image", { keyword, duration });
       return response.json();
     },
-    onSuccess: (data, keyword) => {
+    onSuccess: (data, { keyword, duration }) => {
       const newImage: DisplayedImage = {
         id: Date.now().toString(),
         url: data.imageUrl,
         keyword,
-        timeLeft: data.duration || 6,
+        timeLeft: duration || data.duration || 6,
         source: data.source || 'clipdrop'
       };
       setDisplayedImages(prev => [...prev, newImage]);
@@ -46,7 +46,7 @@ export function useImageGeneration() {
   }, []);
 
   const generateImage = (keyword: string, duration: number = 6) => {
-    generateImageMutation.mutate(keyword);
+    generateImageMutation.mutate({ keyword, duration });
   };
 
   return {

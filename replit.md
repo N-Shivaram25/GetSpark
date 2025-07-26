@@ -149,3 +149,13 @@ Preferred communication style: Simple, everyday language.
 - **Speech Display**: 4-line fixed box without border for cleaner appearance
 - **Typography**: Standard text colors optimized for readability
 - **Effects**: Focused on voice button animations - pulse glow, circular waves, and smooth transitions
+
+### Accuracy and Timing Improvements (January 26, 2025)
+- **Enhanced Keyword Detection**: Implemented multi-strategy keyword matching including exact phrase, word boundary, and fuzzy matching for 80% character accuracy
+- **Keyword Highlighting**: Real-time highlighting of detected keywords in speech display with green animated highlighting
+- **Individual Timing Controls**: Added per-keyword timing options in Insert Keywords modal with common time toggle
+- **Visual Feedback**: Detected keywords display with timestamps showing when each keyword was found
+- **Improved Image Generation**: Enhanced ClipDrop prompts with category-specific enhancements for better visual accuracy
+- **Fallback Image Services**: Multiple fallback image sources (LoremFlickr, Unsplash, Picsum) for better image availability
+- **Duration Integration**: Full support for custom duration per keyword in both Keyflow and Img Key modes
+- **Timing Display**: Active keywords now show individual timing settings in the management interface

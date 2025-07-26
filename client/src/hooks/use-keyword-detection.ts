@@ -27,7 +27,8 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
 
   useEffect(() => {
     // Combine current transcript with all speech lines for full context
-    const allText = [...speechLines, transcript].join(' ').toLowerCase();
+    const allText = [...speechLines, transcript].join(' ');
+    const allTextLower = allText.toLowerCase();
     
     console.log('Checking text for keywords:', allText);
     console.log('Available keywords:', keywords);
@@ -38,17 +39,49 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
     const currentTime = Date.now();
     
     if (mode === 'keyflow') {
-      // Check for keywords in Keyflow mode
+      // Enhanced keyword detection for Keyflow mode
       keywords.forEach(keywordObj => {
         const keyword = keywordObj.keyword.toLowerCase();
         
-        // More flexible keyword matching - check for word boundaries
-        const keywordRegex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-        const isKeywordFound = keywordRegex.test(allText) || allText.includes(keyword);
+        // Improved keyword matching with multiple strategies
+        let isKeywordFound = false;
+        
+        // Strategy 1: Exact phrase matching with word boundaries for single words
+        if (keyword.split(' ').length === 1) {
+          const wordBoundaryRegex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          isKeywordFound = wordBoundaryRegex.test(allText);
+        } else {
+          // Strategy 2: Phrase matching for multi-word keywords
+          const phraseRegex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+          isKeywordFound = phraseRegex.test(allText);
+        }
+        
+        // Strategy 3: Fuzzy matching for partial word detection
+        if (!isKeywordFound) {
+          // Check for partial matches (at least 80% of characters match)
+          const keywordChars = keyword.replace(/\s+/g, '').split('');
+          const textWords = allTextLower.split(/\s+/);
+          
+          for (const word of textWords) {
+            let matchCount = 0;
+            const cleanWord = word.replace(/[^\w]/g, '');
+            
+            if (cleanWord.length >= keyword.length * 0.7) {
+              for (const char of keywordChars) {
+                if (cleanWord.includes(char)) matchCount++;
+              }
+              
+              if (matchCount >= keywordChars.length * 0.8) {
+                isKeywordFound = true;
+                break;
+              }
+            }
+          }
+        }
         
         // Check if keyword exists in the text and hasn't been triggered yet
         if (isKeywordFound && !triggeredImages.has(keyword)) {
-          console.log(`Detected keyword in Keyflow mode: ${keyword}`);
+          console.log(`Detected keyword in Keyflow mode: ${keywordObj.keyword} (${keyword})`);
           
           setDetectedKeywords(prev => [...prev, { 
             keyword: keywordObj.keyword, 
@@ -57,17 +90,28 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
           setTriggeredImages(prev => new Set(Array.from(prev).concat(keyword)));
           
           // Trigger image generation with keyword duration
-          onKeywordDetected(keywordObj.keyword, 'keyflow', keywordObj.duration);
+          onKeywordDetected(keywordObj.keyword, 'keyflow', keywordObj.duration || 6);
         }
       });
     } else if (mode === 'imgkey') {
-      // Check for mapped keywords in Img Key mode
+      // Enhanced keyword detection for Img Key mode
       (imgKeyMappings as any[]).forEach((mapping: any) => {
         const keyword = mapping.keyword.toLowerCase();
         
+        // Use same enhanced matching strategy
+        let isKeywordFound = false;
+        
+        if (keyword.split(' ').length === 1) {
+          const wordBoundaryRegex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          isKeywordFound = wordBoundaryRegex.test(allText);
+        } else {
+          const phraseRegex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+          isKeywordFound = phraseRegex.test(allText);
+        }
+        
         // Check if keyword exists in the text and hasn't been triggered yet
-        if (allText.includes(keyword) && !triggeredImages.has(keyword)) {
-          console.log(`Detected keyword in Img Key mode: ${keyword}`);
+        if (isKeywordFound && !triggeredImages.has(keyword)) {
+          console.log(`Detected keyword in Img Key mode: ${mapping.keyword} (${keyword})`);
           
           setDetectedKeywords(prev => [...prev, { 
             keyword: mapping.keyword, 
@@ -75,8 +119,8 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
           }]);
           setTriggeredImages(prev => new Set(Array.from(prev).concat(keyword)));
           
-          // Trigger custom image display
-          onKeywordDetected(mapping.keyword, 'imgkey');
+          // Trigger custom image display with mapping duration
+          onKeywordDetected(mapping.keyword, 'imgkey', mapping.duration || 6);
         }
       });
     }

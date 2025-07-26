@@ -253,14 +253,22 @@ mountain peak"
                           : "bg-background border-border"
                       )}
                     >
-                      <span className={cn(
-                        "font-medium",
-                        keyword.used && "line-through"
-                      )}>
-                        {keyword.keyword}
-                      </span>
-                      <div className="text-xs text-muted-foreground">
-                        {keyword.used ? "Used" : "Ready"}
+                      <div className="flex-1">
+                        <span className={cn(
+                          "font-medium",
+                          keyword.used && "line-through"
+                        )}>
+                          {keyword.keyword}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                          <Clock size={12} />
+                          <span>{keyword.duration || 6}s</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {keyword.used ? "Used" : "Ready"}
+                        </div>
                       </div>
                     </div>
                   ))}

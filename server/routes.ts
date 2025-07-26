@@ -129,15 +129,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ClipDrop API integration
+  // Enhanced ClipDrop API integration with better prompt accuracy
   app.post("/api/generate-image", async (req, res) => {
     try {
-      const { keyword } = req.body;
+      const { keyword, duration = 6 } = req.body;
       if (!keyword) {
         return res.status(400).json({ message: "Keyword is required" });
       }
 
-      console.log(`Generating image for keyword: ${keyword}`);
+      console.log(`Generating image for keyword: ${keyword} with duration: ${duration}`);
       
       try {
         // Try ClipDrop first, then DeepAI as primary fallback
@@ -148,14 +148,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log('ClipDrop failed, trying DeepAI...');
           imageUrl = await generateImageWithDeepAI(keyword);
         }
-        res.json({ imageUrl });
+        res.json({ imageUrl, duration, source: 'ai' });
       } catch (primaryError) {
         console.error("Both ClipDrop and DeepAI failed, using image fallback:", primaryError);
-        // Multiple fallback options for better image accuracy
+        // Enhanced fallback options for better image accuracy based on keyword
+        const enhancedKeyword = encodeURIComponent(keyword.replace(/[^\w\s]/g, ''));
         const fallbackOptions = [
-          `https://api.lorem.space/image/abstract?w=600&h=400&hash=${encodeURIComponent(keyword)}`,
-          `https://loremflickr.com/600/400/${encodeURIComponent(keyword)}`,
-          `https://picsum.photos/600/400?random=${encodeURIComponent(keyword)}&t=${Date.now()}`
+          `https://loremflickr.com/600/400/${enhancedKeyword}`,
+          `https://source.unsplash.com/600x400/?${enhancedKeyword}`,
+          `https://picsum.photos/600/400?random=${enhancedKeyword}&t=${Date.now()}`
         ];
         
         // Try each fallback until one works
@@ -163,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           try {
             const testResponse = await fetch(fallbackUrl, { method: 'HEAD' });
             if (testResponse.ok) {
-              res.json({ imageUrl: fallbackUrl });
+              res.json({ imageUrl: fallbackUrl, duration, source: 'fallback' });
               return;
             }
           } catch (e) {
@@ -171,31 +172,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
         
-        // Final fallback - SVG placeholder with keyword
+        // Final fallback - Enhanced SVG with better visual representation
         const svgPlaceholder = `data:image/svg+xml;base64,${Buffer.from(`
           <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
-            <rect width="600" height="400" fill="#f0f0f0"/>
-            <text x="300" y="200" text-anchor="middle" font-family="Arial" font-size="20" fill="#666">
+            <defs>
+              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:0.1" />
+                <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.2" />
+              </linearGradient>
+            </defs>
+            <rect width="600" height="400" fill="url(#grad)"/>
+            <circle cx="300" cy="150" r="40" fill="#4f46e5" opacity="0.3"/>
+            <text x="300" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#374151">
               ${keyword}
+            </text>
+            <text x="300" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6b7280">
+              Generated Visual
             </text>
           </svg>
         `).toString('base64')}`;
-        res.json({ imageUrl: svgPlaceholder });
+        res.json({ imageUrl: svgPlaceholder, duration, source: 'placeholder' });
       }
     } catch (error) {
       console.error("Error generating image:", error);
       const keyword = req.body.keyword || 'nature';
+      const duration = req.body.duration || 6;
       
-      // SVG placeholder as reliable fallback
+      // Enhanced SVG placeholder as reliable fallback
       const svgPlaceholder = `data:image/svg+xml;base64,${Buffer.from(`
         <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
-          <rect width="600" height="400" fill="#f0f0f0"/>
-          <text x="300" y="200" text-anchor="middle" font-family="Arial" font-size="20" fill="#666">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ef4444;stop-opacity:0.1" />
+              <stop offset="100%" style="stop-color:#f97316;stop-opacity:0.2" />
+            </linearGradient>
+          </defs>
+          <rect width="600" height="400" fill="url(#grad)"/>
+          <circle cx="300" cy="150" r="40" fill="#ef4444" opacity="0.3"/>
+          <text x="300" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#374151">
             ${keyword}
+          </text>
+          <text x="300" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6b7280">
+            Visual Placeholder
           </text>
         </svg>
       `).toString('base64')}`;
-      res.json({ imageUrl: svgPlaceholder });
+      res.json({ imageUrl: svgPlaceholder, duration, source: 'error' });
     }
   });
 
