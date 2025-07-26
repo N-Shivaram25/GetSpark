@@ -10,6 +10,7 @@ import { useKeywordDetection } from "@/hooks/use-keyword-detection";
 import { useImageGeneration } from "@/hooks/use-image-generation";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { AccuracyIndicator } from "@/components/accuracy-indicator";
 
 export default function MainPage() {
   const [currentMode, setCurrentMode] = useState<'keyflow' | 'imgkey'>('keyflow');
@@ -23,7 +24,10 @@ export default function MainPage() {
     startListening, 
     stopListening,
     speechLines,
-    clearSpeech
+    clearSpeech,
+    accuracyScore,
+    corrections,
+    isProcessingAccuracy
   } = useRealTimeSpeech();
   
   // clearSpeech function is now provided by the hook
@@ -154,13 +158,22 @@ export default function MainPage() {
             </div>
           </div>
 
-          <SpeechDisplay 
-            speechLines={speechLines}
-            transcript={transcript}
-            isListening={isListening}
-            mode={currentMode}
-            detectedKeywords={detectedKeywords}
-          />
+          <div className="space-y-4">
+            <SpeechDisplay 
+              speechLines={speechLines}
+              transcript={transcript}
+              isListening={isListening}
+              mode={currentMode}
+              detectedKeywords={detectedKeywords}
+            />
+            
+            {/* AI Accuracy Indicator */}
+            <AccuracyIndicator
+              accuracyScore={accuracyScore}
+              corrections={corrections}
+              isProcessing={isProcessingAccuracy}
+            />
+          </div>
         </div>
 
         {/* Generated Images Display - Right below Speech Display */}

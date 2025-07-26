@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useEnhancedSpeech } from './use-enhanced-speech';
 
 interface SpeechHook {
   isListening: boolean;
@@ -7,12 +8,26 @@ interface SpeechHook {
   startListening: () => void;
   stopListening: () => void;
   clearSpeech: () => void;
+  
+  // Enhanced speech features
+  accuracyScore: number;
+  corrections: Array<{
+    original: string;
+    corrected: string;
+    reason: string;
+  }>;
+  isProcessingAccuracy: boolean;
+  correctText: (text: string) => Promise<string>;
+  detectKeywords: (text: string, keywords: string[]) => Promise<any>;
 }
 
 export const useRealTimeSpeech = (): SpeechHook => {
   const [isListening, setIsListening] = useState(false);
   const [speechLines, setSpeechLines] = useState<string[]>(['', '', '', '']);
   const [transcript, setTranscript] = useState('');
+  
+  // Enhanced speech processing
+  const enhancedSpeech = useEnhancedSpeech();
   
   const recognitionRef = useRef<any>(null);
   const displayTextRef = useRef('');
@@ -166,6 +181,9 @@ export const useRealTimeSpeech = (): SpeechHook => {
           processCharacter(newText[i]);
         }
         
+        // Add to enhanced speech buffer for processing
+        enhancedSpeech.addToBuffer(newText);
+        
         lastProcessedLength = currentTranscript.length;
       }
 
@@ -255,6 +273,13 @@ export const useRealTimeSpeech = (): SpeechHook => {
     transcript,
     startListening,
     stopListening,
-    clearSpeech
+    clearSpeech,
+    
+    // Enhanced speech data
+    accuracyScore: enhancedSpeech.accuracyScore,
+    corrections: enhancedSpeech.corrections,
+    isProcessingAccuracy: enhancedSpeech.isProcessing,
+    correctText: enhancedSpeech.correctText,
+    detectKeywords: enhancedSpeech.detectKeywords
   };
 };
