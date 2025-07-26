@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertKeywordSchema, insertImgKeyMappingSchema } from "@shared/schema";
 import { generateImageWithClipDrop } from "./clipdrop";
+import { generateImageWithDeepAI } from "./deepai";
 import multer from "multer";
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -129,19 +130,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Generating image for keyword: ${keyword}`);
       
       try {
-        const imageUrl = await generateImageWithClipDrop(keyword);
+        // Try ClipDrop first, then DeepAI as primary fallback
+        let imageUrl;
+        try {
+          imageUrl = await generateImageWithClipDrop(keyword);
+        } catch (clipdropError) {
+          console.log('ClipDrop failed, trying DeepAI...');
+          imageUrl = await generateImageWithDeepAI(keyword);
+        }
         res.json({ imageUrl });
-      } catch (clipdropError) {
-        console.error("ClipDrop failed, using fallback:", clipdropError);
-        // Fallback to Picsum placeholder with keyword in filename
-        const picsumUrl = `https://picsum.photos/400/300?random=${encodeURIComponent(keyword)}&t=${Date.now()}`;
-        res.json({ imageUrl: picsumUrl });
+      } catch (primaryError) {
+        console.error("Both ClipDrop and DeepAI failed, using image fallback:", primaryError);
+        // Multiple fallback options for better image accuracy
+        const fallbackOptions = [
+          `https://api.lorem.space/image/abstract?w=600&h=400&hash=${encodeURIComponent(keyword)}`,
+          `https://loremflickr.com/600/400/${encodeURIComponent(keyword)}`,
+          `https://picsum.photos/600/400?random=${encodeURIComponent(keyword)}&t=${Date.now()}`
+        ];
+        
+        // Try each fallback until one works
+        for (const fallbackUrl of fallbackOptions) {
+          try {
+            const testResponse = await fetch(fallbackUrl, { method: 'HEAD' });
+            if (testResponse.ok) {
+              res.json({ imageUrl: fallbackUrl });
+              return;
+            }
+          } catch (e) {
+            console.log(`Fallback ${fallbackUrl} failed, trying next...`);
+          }
+        }
+        
+        // Final fallback - SVG placeholder with keyword
+        const svgPlaceholder = `data:image/svg+xml;base64,${Buffer.from(`
+          <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+            <rect width="600" height="400" fill="#f0f0f0"/>
+            <text x="300" y="200" text-anchor="middle" font-family="Arial" font-size="20" fill="#666">
+              ${keyword}
+            </text>
+          </svg>
+        `).toString('base64')}`;
+        res.json({ imageUrl: svgPlaceholder });
       }
     } catch (error) {
       console.error("Error generating image:", error);
-      // Fallback to Picsum
-      const picsumUrl = `https://picsum.photos/400/300?random=${encodeURIComponent(req.body.keyword || 'default')}&t=${Date.now()}`;
-      res.json({ imageUrl: picsumUrl });
+      const keyword = req.body.keyword || 'nature';
+      
+      // SVG placeholder as reliable fallback
+      const svgPlaceholder = `data:image/svg+xml;base64,${Buffer.from(`
+        <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+          <rect width="600" height="400" fill="#f0f0f0"/>
+          <text x="300" y="200" text-anchor="middle" font-family="Arial" font-size="20" fill="#666">
+            ${keyword}
+          </text>
+        </svg>
+      `).toString('base64')}`;
+      res.json({ imageUrl: svgPlaceholder });
     }
   });
 

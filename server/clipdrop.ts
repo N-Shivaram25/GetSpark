@@ -1,6 +1,8 @@
 export async function generateImageWithClipDrop(prompt: string): Promise<string> {
   const apiKey = process.env.CLIPDROP_API_KEY;
   
+  console.log('ClipDrop API Key present:', !!apiKey);
+  
   if (!apiKey) {
     throw new Error('ClipDrop API key not configured');
   }
@@ -9,6 +11,8 @@ export async function generateImageWithClipDrop(prompt: string): Promise<string>
     const form = new FormData();
     form.append('prompt', prompt);
 
+    console.log('Attempting ClipDrop generation for:', prompt);
+    
     const response = await fetch('https://clipdrop-api.co/text-to-image/v1', {
       method: 'POST',
       headers: {
@@ -20,9 +24,11 @@ export async function generateImageWithClipDrop(prompt: string): Promise<string>
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ClipDrop API error:', response.status, errorText);
-      throw new Error(`ClipDrop API error: ${response.status}`);
+      throw new Error(`ClipDrop API error: ${response.status} - ${errorText}`);
     }
 
+    console.log('ClipDrop generation successful');
+    
     // Get the image as a buffer
     const imageBuffer = await response.arrayBuffer();
     
