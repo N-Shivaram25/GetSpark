@@ -17,7 +17,7 @@ export default function SpeechDisplay({ speechLines, transcript }: SpeechDisplay
   return (
     <div
       ref={containerRef}
-      className="border border-border rounded-xl p-6 bg-card min-h-[180px] font-mono text-sm leading-relaxed overflow-hidden shadow-sm"
+      className="rounded-xl p-6 bg-card min-h-[120px] font-mono text-sm leading-relaxed overflow-hidden shadow-sm"
     >
       <div className="space-y-1 text-card-foreground">
         {speechLines.length === 0 && !transcript ? (
@@ -34,8 +34,8 @@ export default function SpeechDisplay({ speechLines, transcript }: SpeechDisplay
                 {transcript}
               </div>
             )}
-            {/* Ensure we always have 6 lines */}
-            {Array.from({ length: Math.max(0, 6 - speechLines.length - (transcript ? 1 : 0)) }).map((_, index) => (
+            {/* Ensure we always have 4 lines */}
+            {Array.from({ length: Math.max(0, 4 - speechLines.length - (transcript ? 1 : 0)) }).map((_, index) => (
               <div key={`empty-${index}`} className="opacity-0">Line {speechLines.length + (transcript ? 1 : 0) + index + 1}</div>
             ))}
           </>
