@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { correctSpeechText, enhancedKeywordDetection, AccuracyBuffer } from "./openai-speech";
+import { enhanceTextAccuracy } from "./openai-speech";
 import { insertKeywordSchema, insertImgKeyMappingSchema } from "@shared/schema";
 import { generateImageWithClipDrop } from "./clipdrop";
 import { generateImageWithDeepAI } from "./deepai";
@@ -29,8 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Text is required" });
       }
 
-      const result = await correctSpeechText(text);
-      const enhancedText = result.correctedText;
+      const enhancedText = await enhanceTextAccuracy(text);
       res.json({ 
         originalText: text,
         enhancedText,
@@ -41,53 +40,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: "Failed to enhance text",
         success: false 
-      });
-    }
-  });
-
-  // Advanced speech correction endpoint
-  app.post("/api/correct-speech", async (req, res) => {
-    try {
-      const { text } = req.body;
-      
-      if (!text || typeof text !== 'string') {
-        return res.status(400).json({ error: "Text is required" });
-      }
-
-      const result = await correctSpeechText(text);
-      res.json(result);
-    } catch (error) {
-      console.error('Speech correction error:', error);
-      res.status(500).json({ 
-        error: "Failed to correct speech text",
-        correctedText: req.body.text || "",
-        confidenceScore: 0.1,
-        corrections: []
-      });
-    }
-  });
-
-  // Enhanced keyword detection endpoint
-  app.post("/api/detect-keywords", async (req, res) => {
-    try {
-      const { text, keywords } = req.body;
-      
-      if (!text || typeof text !== 'string') {
-        return res.status(400).json({ error: "Text is required" });
-      }
-      
-      if (!Array.isArray(keywords)) {
-        return res.status(400).json({ error: "Keywords array is required" });
-      }
-
-      const result = await enhancedKeywordDetection(text, keywords);
-      res.json(result);
-    } catch (error) {
-      console.error('Enhanced keyword detection error:', error);
-      res.status(500).json({ 
-        error: "Failed to detect keywords",
-        detectedKeywords: [],
-        semanticMatches: []
       });
     }
   });
