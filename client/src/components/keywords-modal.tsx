@@ -3,12 +3,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useKeywords } from "@/hooks/use-keywords";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface KeywordsModalProps {
@@ -19,13 +21,16 @@ interface KeywordsModalProps {
 export default function KeywordsModal({ isOpen, onClose }: KeywordsModalProps) {
   const [keywordsText, setKeywordsText] = useState("");
   const [activeTab, setActiveTab] = useState("add");
+  const [useCommonTime, setUseCommonTime] = useState(true);
+  const [commonDuration, setCommonDuration] = useState(6);
+  const [individualDurations, setIndividualDurations] = useState<Record<string, number>>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { keywords } = useKeywords();
 
   const addKeywordsMutation = useMutation({
-    mutationFn: async (keywords: string[]) => {
-      const response = await apiRequest("POST", "/api/keywords/batch", { keywords });
+    mutationFn: async (keywordsData: Array<{keyword: string, duration: number}>) => {
+      const response = await apiRequest("POST", "/api/keywords/batch", { keywords: keywordsData });
       return response.json();
     },
     onSuccess: () => {
@@ -47,12 +52,12 @@ export default function KeywordsModal({ isOpen, onClose }: KeywordsModalProps) {
   });
 
   const handleDone = () => {
-    const keywords = keywordsText
+    const keywordList = keywordsText
       .split('\n')
       .map(k => k.trim())
       .filter(k => k.length > 0);
     
-    if (keywords.length === 0) {
+    if (keywordList.length === 0) {
       toast({
         title: "No keywords entered",
         description: "Please enter at least one keyword.",
@@ -61,12 +66,30 @@ export default function KeywordsModal({ isOpen, onClose }: KeywordsModalProps) {
       return;
     }
 
-    addKeywordsMutation.mutate(keywords);
+    const keywordsData = keywordList.map(keyword => ({
+      keyword,
+      duration: useCommonTime ? commonDuration : (individualDurations[keyword] || 6)
+    }));
+
+    addKeywordsMutation.mutate(keywordsData);
   };
 
   const handleClear = () => {
     setKeywordsText("");
+    setIndividualDurations({});
   };
+
+  const updateIndividualDuration = (keyword: string, duration: number) => {
+    setIndividualDurations(prev => ({
+      ...prev,
+      [keyword]: duration
+    }));
+  };
+
+  const keywordsList = keywordsText
+    .split('\n')
+    .map(k => k.trim())
+    .filter(k => k.length > 0);
 
   const clearAllKeywordsMutation = useMutation({
     mutationFn: async () => {
@@ -107,8 +130,9 @@ export default function KeywordsModal({ isOpen, onClose }: KeywordsModalProps) {
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="add">Add Keywords</TabsTrigger>
+            <TabsTrigger value="time">Time Settings</TabsTrigger>
             <TabsTrigger value="active">Active ({keywords.length})</TabsTrigger>
           </TabsList>
           
@@ -148,6 +172,70 @@ mountain peak"
               >
                 Clear
               </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="time" className="space-y-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="common-time" className="text-sm font-medium">
+                  Use common time for all keywords
+                </Label>
+                <Switch
+                  id="common-time"
+                  checked={useCommonTime}
+                  onCheckedChange={setUseCommonTime}
+                />
+              </div>
+
+              {useCommonTime ? (
+                <div className="space-y-2">
+                  <Label htmlFor="common-duration" className="text-sm font-medium">
+                    Display duration for all keywords (seconds)
+                  </Label>
+                  <Input
+                    id="common-duration"
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={commonDuration}
+                    onChange={(e) => setCommonDuration(parseInt(e.target.value) || 6)}
+                    className="w-24"
+                  />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">
+                    Set individual time for each keyword
+                  </Label>
+                  {keywordsList.length > 0 ? (
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {keywordsList.map((keyword, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 border rounded">
+                          <span className="text-sm font-medium truncate flex-1 mr-2">
+                            {keyword}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <Input
+                              type="number"
+                              min="1"
+                              max="60"
+                              value={individualDurations[keyword] || 6}
+                              onChange={(e) => updateIndividualDuration(keyword, parseInt(e.target.value) || 6)}
+                              className="w-16 text-xs"
+                            />
+                            <span className="text-xs text-muted-foreground">s</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">
+                      Add keywords in the "Add Keywords" tab to set individual timings
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </TabsContent>
 

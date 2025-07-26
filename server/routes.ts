@@ -37,9 +37,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const addedKeywords = [];
-      for (const keywordText of keywords) {
-        if (keywordText.trim()) {
-          const keyword = await storage.addKeyword({ keyword: keywordText.trim() });
+      for (const keywordData of keywords) {
+        if (typeof keywordData === 'string') {
+          // Support legacy format (just strings)
+          if (keywordData.trim()) {
+            const keyword = await storage.addKeyword({ keyword: keywordData.trim(), duration: 6 });
+            addedKeywords.push(keyword);
+          }
+        } else if (keywordData.keyword && keywordData.keyword.trim()) {
+          // New format with duration
+          const keyword = await storage.addKeyword({ 
+            keyword: keywordData.keyword.trim(),
+            duration: keywordData.duration || 6
+          });
           addedKeywords.push(keyword);
         }
       }

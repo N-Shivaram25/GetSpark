@@ -7,6 +7,7 @@ export const keywords = pgTable("keywords", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   keyword: text("keyword").notNull(),
   used: boolean("used").default(false),
+  duration: integer("duration").default(6), // Display duration in seconds
 });
 
 export const imgKeyMappings = pgTable("img_key_mappings", {

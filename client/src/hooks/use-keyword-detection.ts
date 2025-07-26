@@ -29,6 +29,10 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
     // Combine current transcript with all speech lines for full context
     const allText = [...speechLines, transcript].join(' ').toLowerCase();
     
+    console.log('Checking text for keywords:', allText);
+    console.log('Available keywords:', keywords);
+    console.log('Mode:', mode);
+    
     if (!allText.trim()) return;
 
     const currentTime = Date.now();
@@ -38,8 +42,12 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
       keywords.forEach(keywordObj => {
         const keyword = keywordObj.keyword.toLowerCase();
         
+        // More flexible keyword matching - check for word boundaries
+        const keywordRegex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+        const isKeywordFound = keywordRegex.test(allText) || allText.includes(keyword);
+        
         // Check if keyword exists in the text and hasn't been triggered yet
-        if (allText.includes(keyword) && !triggeredImages.has(keyword)) {
+        if (isKeywordFound && !triggeredImages.has(keyword)) {
           console.log(`Detected keyword in Keyflow mode: ${keyword}`);
           
           setDetectedKeywords(prev => [...prev, { 

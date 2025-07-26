@@ -6,7 +6,7 @@ export async function generateImageWithDeepAI(prompt: string): Promise<string> {
     const response = await fetch('https://api.deepai.org/api/text2img', {
       method: 'POST',
       headers: {
-        'api-key': 'quickstart-QUdJIGlzIGNvbWluZy4uLi4K', // DeepAI's free public key for testing
+        'Api-Key': 'quickstart-QUdJIGlzIGNvbWluZy4uLi4K', // DeepAI's free public key for testing
       },
       body: form,
     });

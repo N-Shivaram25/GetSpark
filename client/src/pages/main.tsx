@@ -27,7 +27,16 @@ export default function MainPage() {
   
   const { displayedImages, generateImage } = useImageGeneration();
 
+  // Debug logging for keyword detection
+  useEffect(() => {
+    console.log('Speech transcript:', transcript);
+    console.log('Speech lines:', speechLines);
+    console.log('Current mode:', currentMode);
+    console.log('Available keywords:', keywords);
+  }, [transcript, speechLines, currentMode, keywords]);
+
   const handleKeywordDetected = (keyword: string, mode: 'keyflow' | 'imgkey') => {
+    console.log(`Keyword detected: ${keyword} in mode: ${mode}`);
     if (mode === 'keyflow') {
       generateImage(keyword);
     }
