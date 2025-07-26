@@ -3,9 +3,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 export function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
-  const [speechLines, setSpeechLines] = useState<string[]>([]);
+  const [speechLines, setSpeechLines] = useState<string[]>(['', '', '', '']);
   
   const recognitionRef = useRef<any>(null);
+  const allTextRef = useRef('');
+  
+  const CHARS_PER_LINE = 50;
+  const MAX_LINES = 4;
 
   const startListening = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
@@ -26,7 +30,7 @@ export function useSpeechRecognition() {
       setIsListening(true);
     };
 
-    recognitionRef.current.onresult = (event) => {
+    recognitionRef.current.onresult = (event: any) => {
       let interimTranscript = '';
       let finalTranscript = '';
 
@@ -43,32 +47,67 @@ export function useSpeechRecognition() {
 
       if (finalTranscript) {
         const text = finalTranscript.trim();
-        // Check if text ends with punctuation (sentence ending)
-        const endsWithPunctuation = /[.!?]$/.test(text);
+        // Add to accumulated text
+        allTextRef.current += (allTextRef.current ? ' ' : '') + text;
         
-        setSpeechLines(prev => {
-          if (prev.length === 0) {
-            // First line
-            return [text];
-          } else {
-            const lastIndex = prev.length - 1;
-            if (endsWithPunctuation) {
-              // End of sentence - add as new line
-              const updated = [...prev, text];
-              return updated.slice(-6); // Keep only last 6 lines
-            } else {
-              // Continue on same line
-              const updated = [...prev];
-              updated[lastIndex] = (updated[lastIndex] || '') + ' ' + text;
-              return updated.slice(-6);
-            }
-          }
-        });
+        // Update display with LIFO behavior
+        updateDisplayLines();
         setTranscript(''); // Clear interim transcript
       }
     };
+    
+    const updateDisplayLines = () => {
+      const text = allTextRef.current;
+      if (!text) {
+        setSpeechLines(['', '', '', '']);
+        return;
+      }
 
-    recognitionRef.current.onerror = (event) => {
+      const maxTotalChars = CHARS_PER_LINE * MAX_LINES; // 200 chars total
+      
+      let displayText = text;
+      
+      // If text exceeds capacity, implement LIFO (remove from beginning)
+      if (text.length > maxTotalChars) {
+        displayText = text.slice(-maxTotalChars);
+        allTextRef.current = displayText; // Update accumulated text
+      }
+      
+      // Break text into 4 lines
+      const lines = ['', '', '', ''];
+      let currentIndex = 0;
+      
+      for (let lineIndex = 0; lineIndex < MAX_LINES && currentIndex < displayText.length; lineIndex++) {
+        const remainingText = displayText.slice(currentIndex);
+        
+        if (remainingText.length <= CHARS_PER_LINE) {
+          // Remaining text fits in current line
+          lines[lineIndex] = remainingText;
+          break;
+        } else {
+          // Find the best break point (preferably at a space)
+          let breakPoint = CHARS_PER_LINE;
+          const segment = remainingText.slice(0, CHARS_PER_LINE + 10);
+          const lastSpaceIndex = segment.lastIndexOf(' ', CHARS_PER_LINE);
+          
+          if (lastSpaceIndex > CHARS_PER_LINE - 15 && lastSpaceIndex !== -1) {
+            breakPoint = lastSpaceIndex;
+          }
+          
+          lines[lineIndex] = remainingText.slice(0, breakPoint);
+          currentIndex += breakPoint;
+          
+          // Skip leading spaces on next line
+          while (currentIndex < displayText.length && displayText[currentIndex] === ' ') {
+            currentIndex++;
+          }
+        }
+      }
+      
+      setSpeechLines(lines);
+    };
+
+    recognitionRef.current.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
     };
@@ -105,6 +144,10 @@ export function useSpeechRecognition() {
     transcript,
     speechLines,
     startListening,
-    stopListening
+    stopListening,
+    recognitionRef,
+    setSpeechLines,
+    setTranscript,
+    allTextRef
   };
 }

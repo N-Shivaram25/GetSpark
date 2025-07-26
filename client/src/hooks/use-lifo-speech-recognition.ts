@@ -24,14 +24,10 @@ export function useLifoSpeechRecognition(): LifoSpeechRecognitionState {
   const [speechLines, setSpeechLines] = useState<string[]>(['', '', '', '']);
   
   const recognitionRef = useRef<any | null>(null);
-  const finalTranscriptRef = useRef('');
-  const currentWordBuffer = useRef('');
-  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const pendingText = useRef('');
+  const allTextBuffer = useRef('');
   
-  const WORDS_PER_LINE = 10;
+  const CHARS_PER_LINE = 50; // Approximately 10 words per line
   const TOTAL_LINES = 4;
-  const TYPING_SPEED = 50; // milliseconds per character
 
   // Initialize speech recognition
   useEffect(() => {
@@ -71,15 +67,10 @@ export function useLifoSpeechRecognition(): LifoSpeechRecognitionState {
       // Process final transcript
       if (finalTranscript.trim()) {
         const newText = finalTranscript.trim();
-        finalTranscriptRef.current += ' ' + newText;
+        allTextBuffer.current += (allTextBuffer.current ? ' ' : '') + newText;
         
-        // Add to pending text for typing animation
-        pendingText.current += ' ' + newText;
-        
-        // Start typing animation if not already running
-        if (!typingIntervalRef.current) {
-          startTypingAnimation();
-        }
+        // Update display with all text
+        updateDisplayLines();
         
         setDisplayText(''); // Clear interim display
       }
@@ -100,104 +91,62 @@ export function useLifoSpeechRecognition(): LifoSpeechRecognitionState {
       if (recognition) {
         recognition.stop();
       }
-      if (typingIntervalRef.current) {
-        clearInterval(typingIntervalRef.current);
-      }
     };
   }, []);
 
-  // Letter-by-letter typing animation with LIFO
-  const startTypingAnimation = useCallback(() => {
-    if (typingIntervalRef.current) {
-      clearInterval(typingIntervalRef.current);
+  // Update display lines with proper flow
+  const updateDisplayLines = () => {
+    const text = allTextBuffer.current;
+    if (!text) {
+      setSpeechLines(['', '', '', '']);
+      return;
     }
 
-    typingIntervalRef.current = setInterval(() => {
-      if (pendingText.current.length === 0) {
-        clearInterval(typingIntervalRef.current!);
-        typingIntervalRef.current = null;
-        return;
-      }
-
-      // Get next character
-      const nextChar = pendingText.current[0];
-      pendingText.current = pendingText.current.slice(1);
+    const maxTotalChars = CHARS_PER_LINE * TOTAL_LINES; // 200 chars total (4 lines × 50 chars each)
+    
+    let displayText = text;
+    
+    // If text exceeds capacity, implement LIFO (remove from beginning)
+    if (text.length > maxTotalChars) {
+      // Keep only the last maxTotalChars characters
+      displayText = text.slice(-maxTotalChars);
+      allTextBuffer.current = displayText; // Update buffer to reflect trimmed text
+    }
+    
+    // Break text into lines
+    const lines = ['', '', '', ''];
+    let currentIndex = 0;
+    
+    for (let lineIndex = 0; lineIndex < TOTAL_LINES && currentIndex < displayText.length; lineIndex++) {
+      const remainingText = displayText.slice(currentIndex);
       
-      // Add character to current word buffer
-      if (nextChar === ' ') {
-        // Word complete, add to display
-        if (currentWordBuffer.current.trim()) {
-          addWordToDisplay(currentWordBuffer.current.trim());
-          currentWordBuffer.current = '';
-        }
+      if (remainingText.length <= CHARS_PER_LINE) {
+        // Remaining text fits in current line
+        lines[lineIndex] = remainingText;
+        break;
       } else {
-        currentWordBuffer.current += nextChar;
-      }
-
-      // If this is the last character and we have a remaining word
-      if (pendingText.current.length === 0 && currentWordBuffer.current.trim()) {
-        addWordToDisplay(currentWordBuffer.current.trim());
-        currentWordBuffer.current = '';
-      }
-    }, TYPING_SPEED);
-  }, []);
-
-  // Add word to display with LIFO logic
-  const addWordToDisplay = useCallback((word: string) => {
-    setSpeechLines(prev => {
-      const newLines = [...prev];
-      
-      // Find the last line with space
-      let targetLineIndex = TOTAL_LINES - 1;
-      let targetLine = newLines[targetLineIndex];
-      
-      // Check if current line has space (less than WORDS_PER_LINE words)
-      const currentWords = targetLine.trim().split(/\s+/).filter(w => w.length > 0);
-      
-      if (currentWords.length < WORDS_PER_LINE) {
-        // Add to current line
-        newLines[targetLineIndex] = targetLine ? targetLine + ' ' + word : word;
-      } else {
-        // Need to flow backward - implement LIFO
-        // Remove first word from line 1
-        const line1Words = newLines[0].trim().split(/\s+/).filter(w => w.length > 0);
-        if (line1Words.length > 0) {
-          line1Words.shift(); // Remove first word
-          newLines[0] = line1Words.join(' ');
+        // Find the best break point (preferably at a space)
+        let breakPoint = CHARS_PER_LINE;
+        const segment = remainingText.slice(0, CHARS_PER_LINE + 10); // Look ahead a bit
+        const lastSpaceIndex = segment.lastIndexOf(' ', CHARS_PER_LINE);
+        
+        if (lastSpaceIndex > CHARS_PER_LINE - 20 && lastSpaceIndex !== -1) {
+          // Use space break if it's not too far back
+          breakPoint = lastSpaceIndex;
         }
         
-        // Shift all lines up
-        for (let i = 0; i < TOTAL_LINES - 1; i++) {
-          const currentLineWords = newLines[i].trim().split(/\s+/).filter(w => w.length > 0);
-          const nextLineWords = newLines[i + 1].trim().split(/\s+/).filter(w => w.length > 0);
-          
-          if (currentLineWords.length < WORDS_PER_LINE && nextLineWords.length > 0) {
-            // Move first word from next line to current line
-            const wordToMove = nextLineWords.shift()!;
-            currentLineWords.push(wordToMove);
-            newLines[i] = currentLineWords.join(' ');
-            newLines[i + 1] = nextLineWords.join(' ');
-          }
-        }
+        lines[lineIndex] = remainingText.slice(0, breakPoint);
+        currentIndex += breakPoint;
         
-        // Add new word to last line
-        const lastLineWords = newLines[TOTAL_LINES - 1].trim().split(/\s+/).filter(w => w.length > 0);
-        lastLineWords.push(word);
-        newLines[TOTAL_LINES - 1] = lastLineWords.join(' ');
-        
-        // If last line is still too full, remove from beginning of line 1
-        if (lastLineWords.length > WORDS_PER_LINE) {
-          const line1WordsUpdate = newLines[0].trim().split(/\s+/).filter(w => w.length > 0);
-          if (line1WordsUpdate.length > 0) {
-            line1WordsUpdate.shift();
-            newLines[0] = line1WordsUpdate.join(' ');
-          }
+        // Skip leading spaces on next line
+        while (currentIndex < displayText.length && displayText[currentIndex] === ' ') {
+          currentIndex++;
         }
       }
-      
-      return newLines;
-    });
-  }, []);
+    }
+    
+    setSpeechLines(lines);
+  };
 
   const startListening = useCallback(() => {
     if (recognitionRef.current && !isListening) {
@@ -218,14 +167,7 @@ export function useLifoSpeechRecognition(): LifoSpeechRecognitionState {
   const clearSpeech = useCallback(() => {
     setDisplayText('');
     setSpeechLines(['', '', '', '']);
-    finalTranscriptRef.current = '';
-    currentWordBuffer.current = '';
-    pendingText.current = '';
-    
-    if (typingIntervalRef.current) {
-      clearInterval(typingIntervalRef.current);
-      typingIntervalRef.current = null;
-    }
+    allTextBuffer.current = '';
   }, []);
 
   return {

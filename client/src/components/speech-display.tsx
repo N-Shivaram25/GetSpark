@@ -85,46 +85,50 @@ export default function SpeechDisplay({
             <div className="text-muted-foreground italic">Start speaking to see your words appear here...</div>
           ) : (
             <>
-              {/* Always render exactly 4 lines with strict line management */}
-              {Array.from({ length: 4 }).map((_, index) => {
-                const line = speechLines[index] || '';
+              {/* Always render exactly 4 lines with natural flow and LIFO */}
+              {speechLines.map((line, index) => {
                 const isLastLine = index === 3;
-                const hasVibrantSpace = line.includes('■');
                 
                 return (
                   <div 
                     key={index} 
-                    className="text-card-foreground h-5 transition-all duration-300"
+                    className="text-card-foreground h-6 transition-all duration-300 flex items-center"
                   >
-                    {line ? (
-                      <>
+                    <div className="flex-1">
+                      {line ? (
                         <span 
                           dangerouslySetInnerHTML={{ 
-                            __html: highlightKeywords(line.replace(' ■', '')) 
+                            __html: highlightKeywords(line) 
                           }}
                         />
-                        {/* Vibrant space indicator at end of line 4 */}
-                        {isLastLine && hasVibrantSpace && (
-                          <span className="ml-2 inline-block">
-                            <span className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-2 py-0.5 rounded-full text-xs animate-pulse font-bold">
-                              ⟨NEW⟩
-                            </span>
-                          </span>
+                      ) : (
+                        <span className="text-gray-300 select-none">&nbsp;</span>
+                      )}
+                    </div>
+                    
+                    {/* Colorful indicator at end of line 4 */}
+                    {isLastLine && (
+                      <div className="ml-2 flex items-center">
+                        <div className={`
+                          w-3 h-5 rounded transition-all duration-300
+                          ${isListening 
+                            ? 'bg-gradient-to-b from-green-400 via-blue-500 to-purple-600 animate-pulse shadow-lg' 
+                            : 'bg-gradient-to-b from-green-300 via-blue-400 to-purple-500 shadow-sm'
+                          }
+                        `}></div>
+                        
+                        {/* Current transcript preview */}
+                        {transcript && isListening && (
+                          <div className="ml-2 text-xs text-muted-foreground animate-pulse max-w-[100px] truncate">
+                            {transcript}
+                          </div>
                         )}
-                      </>
-                    ) : (
-                      <span className="text-gray-300 select-none">&nbsp;</span>
+                      </div>
                     )}
                   </div>
                 );
               })}
-              
-              {/* Current transcript (if any) - this should not create a 5th line */}
-              {transcript && speechLines.length < 4 && (
-                <div className="text-card-foreground opacity-75 text-xs text-muted-foreground">
-                  Current: {transcript} {isListening && <span className="animate-pulse">|</span>}
-                </div>
-              )}
+
             </>
           )}
         </div>
@@ -132,38 +136,7 @@ export default function SpeechDisplay({
 
       {/* Speech Status and Detected Keywords */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {/* Speech Pattern Status */}
-        {speechLines.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <h4 className="text-sm font-semibold text-blue-800 mb-2">
-              Enhanced Speech Recognition Status
-            </h4>
-            <div className="space-y-1">
-              <div className="text-xs text-blue-700">
-                Lines: {speechLines.length}/4
-              </div>
-              {speechLines.length >= 4 && (
-                <div className="text-xs text-blue-600 font-medium">
-                  🔄 LIFO Mode: Words flow backward from line 1
-                </div>
-              )}
-              <div className="text-xs text-blue-600">
-                OpenAI Grammar Correction: Active
-              </div>
-              {isEnhancing && (
-                <div className="text-xs text-blue-600 font-medium animate-pulse">
-                  🤖 OpenAI Enhancement: Processing...
-                </div>
-              )}
-              <div className="text-xs text-blue-600">
-                Strict 4-line limit: Enforced
-              </div>
-              <div className="text-xs text-blue-600">
-                Vibrant entry space: Line 4 end
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {/* Detected Keywords Display */}
         {detectedKeywords.length > 0 && (
