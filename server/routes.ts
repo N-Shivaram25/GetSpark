@@ -133,15 +133,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ imageUrl });
       } catch (clipdropError) {
         console.error("ClipDrop failed, using fallback:", clipdropError);
-        // Fallback to Unsplash if ClipDrop fails
-        const unsplashUrl = `https://source.unsplash.com/400x300/?${encodeURIComponent(keyword)}`;
-        res.json({ imageUrl: unsplashUrl });
+        // Fallback to Picsum placeholder with keyword in filename
+        const picsumUrl = `https://picsum.photos/400/300?random=${encodeURIComponent(keyword)}&t=${Date.now()}`;
+        res.json({ imageUrl: picsumUrl });
       }
     } catch (error) {
       console.error("Error generating image:", error);
-      // Fallback to Unsplash
-      const unsplashUrl = `https://source.unsplash.com/400x300/?${encodeURIComponent(req.body.keyword || '')}`;
-      res.json({ imageUrl: unsplashUrl });
+      // Fallback to Picsum
+      const picsumUrl = `https://picsum.photos/400/300?random=${encodeURIComponent(req.body.keyword || 'default')}&t=${Date.now()}`;
+      res.json({ imageUrl: picsumUrl });
     }
   });
 
