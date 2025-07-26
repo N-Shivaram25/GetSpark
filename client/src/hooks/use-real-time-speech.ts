@@ -17,10 +17,15 @@ export const useRealTimeSpeech = (): SpeechHook => {
   const recognitionRef = useRef<any>(null);
   const displayTextRef = useRef('');
   const animationRef = useRef<number>();
+  const lastSpeechTimeRef = useRef<number>(Date.now());
+  const pauseTimeoutRef = useRef<NodeJS.Timeout>();
+  const silenceTimeoutRef = useRef<NodeJS.Timeout>();
   
   const CHARS_PER_LINE = 100; // Increased to fill more space
   const MAX_LINES = 4;
   const MAX_TOTAL_CHARS = CHARS_PER_LINE * MAX_LINES; // 400 total chars
+  const SHORT_PAUSE_MS = 5000; // 5 seconds for comma
+  const LONG_PAUSE_MS = 10000; // 10 seconds for period
 
   const updateDisplay = useCallback(() => {
     const text = displayTextRef.current;
@@ -70,6 +75,33 @@ export const useRealTimeSpeech = (): SpeechHook => {
     updateDisplay();
   }, [updateDisplay]);
 
+  const addPunctuation = useCallback((punctuation: string) => {
+    // Only add punctuation if the last character isn't already punctuation
+    const lastChar = displayTextRef.current.slice(-1);
+    if (lastChar && !/[,.!?;:]/.test(lastChar)) {
+      displayTextRef.current += punctuation;
+      updateDisplay();
+    }
+  }, [updateDisplay]);
+
+  const handlePauseDetection = useCallback(() => {
+    const now = Date.now();
+    const timeSinceLastSpeech = now - lastSpeechTimeRef.current;
+    
+    // Clear existing timeouts
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+    
+    // Set up pause detection timeouts
+    pauseTimeoutRef.current = setTimeout(() => {
+      addPunctuation(',');
+    }, SHORT_PAUSE_MS);
+    
+    silenceTimeoutRef.current = setTimeout(() => {
+      addPunctuation('.');
+    }, LONG_PAUSE_MS);
+  }, [addPunctuation]);
+
   const startListening = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
       console.error('Speech recognition not supported');
@@ -103,9 +135,14 @@ export const useRealTimeSpeech = (): SpeechHook => {
         }
       }
 
+      // Update last speech time and clear pause timeouts when actively speaking
+      lastSpeechTimeRef.current = Date.now();
+      if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+      if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+
       setTranscript(currentTranscript);
 
-      // Process new characters one by one
+      // Process new characters one by one for real-time typing effect
       if (currentTranscript.length > lastProcessedLength) {
         const newText = currentTranscript.slice(lastProcessedLength);
         
@@ -119,10 +156,15 @@ export const useRealTimeSpeech = (): SpeechHook => {
 
       // Handle final results
       if (event.results[event.results.length - 1].isFinal) {
+        // Update last speech time for pause detection
+        lastSpeechTimeRef.current = Date.now();
+        
         // Add space after final result
         setTimeout(() => {
           processCharacter(' ');
           setTranscript('');
+          // Start pause detection after final result
+          handlePauseDetection();
           lastProcessedLength = 0;
         }, 100);
       }
@@ -139,12 +181,16 @@ export const useRealTimeSpeech = (): SpeechHook => {
     };
 
     recognitionRef.current.start();
-  }, [processCharacter]);
+  }, [processCharacter, handlePauseDetection]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
+    // Clear timeouts when stopping
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
+    
     setIsListening(false);
     setTranscript('');
   }, []);
@@ -153,6 +199,9 @@ export const useRealTimeSpeech = (): SpeechHook => {
     displayTextRef.current = '';
     setSpeechLines(['', '', '', '']);
     setTranscript('');
+    // Clear timeouts when clearing speech
+    if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
+    if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
   }, []);
 
   return {
