@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, Plus, MicOff, Trash2 } from "lucide-react";
-import SpeechDisplay from "@/components/speech-display";
+import LifoSpeechDisplay from "@/components/lifo-speech-display";
 import KeywordsModal from "@/components/keywords-modal";
 import ImgKeyModal from "@/components/img-key-modal";
-import { useAdvancedSpeechRecognition } from "@/hooks/use-advanced-speech-recognition";
+import { useLifoSpeechRecognition } from "@/hooks/use-lifo-speech-recognition";
 import { useKeywords } from "@/hooks/use-keywords";
 import { useKeywordDetection } from "@/hooks/use-keyword-detection";
 import { useImageGeneration } from "@/hooks/use-image-generation";
@@ -19,23 +19,22 @@ export default function MainPage() {
   const { keywords } = useKeywords();
   const { 
     isListening, 
-    transcript, 
+    displayText, 
     startListening, 
     stopListening,
     speechLines,
-    isEnhancing,
     clearSpeech
-  } = useAdvancedSpeechRecognition();
+  } = useLifoSpeechRecognition();
   
   const { displayedImages, generateImage } = useImageGeneration();
 
   // Debug logging for keyword detection
   useEffect(() => {
-    console.log('Speech transcript:', transcript);
+    console.log('Speech display text:', displayText);
     console.log('Speech lines:', speechLines);
     console.log('Current mode:', currentMode);
     console.log('Available keywords:', keywords);
-  }, [transcript, speechLines, currentMode, keywords]);
+  }, [displayText, speechLines, currentMode, keywords]);
 
   const handleKeywordDetected = (keyword: string, mode: 'keyflow' | 'imgkey', duration?: number) => {
     console.log(`Keyword detected: ${keyword} in mode: ${mode}, duration: ${duration || 6}`);
@@ -46,7 +45,7 @@ export default function MainPage() {
   };
   
   const { detectedKeywords } = useKeywordDetection({
-    transcript,
+    transcript: displayText,
     speechLines,
     mode: currentMode,
     onKeywordDetected: handleKeywordDetected
@@ -133,7 +132,7 @@ export default function MainPage() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-foreground">Advanced Speech Recognition</h3>
             <div className="flex items-center space-x-3">
-              {speechLines.length > 0 && (
+              {speechLines.some(line => line.trim()) && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -153,13 +152,12 @@ export default function MainPage() {
             </div>
           </div>
 
-          <SpeechDisplay 
+          <LifoSpeechDisplay 
             speechLines={speechLines}
-            transcript={transcript}
+            displayText={displayText}
             isListening={isListening}
             mode={currentMode}
             detectedKeywords={detectedKeywords}
-            isEnhancing={isEnhancing}
           />
         </div>
 

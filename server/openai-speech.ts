@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = process.env.OPENAI_API_KEY ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY }) : null;
 
 export interface SpeechTranscriptionResult {
   text: string;
@@ -10,6 +10,10 @@ export interface SpeechTranscriptionResult {
 }
 
 export async function transcribeAudioWithOpenAI(audioBlob: Buffer): Promise<SpeechTranscriptionResult> {
+  if (!openai) {
+    throw new Error('OpenAI API key not provided');
+  }
+  
   try {
     const transcription = await openai.audio.transcriptions.create({
       file: new File([audioBlob], "audio.webm", { type: "audio/webm" }),
@@ -60,6 +64,11 @@ Rules for line formatting:
 }
 
 export async function enhanceTextAccuracy(text: string): Promise<string> {
+  if (!openai) {
+    console.log('OpenAI API key not provided, returning original text');
+    return text;
+  }
+  
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
