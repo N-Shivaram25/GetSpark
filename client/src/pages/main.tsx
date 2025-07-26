@@ -4,7 +4,7 @@ import { Mic, Plus, MicOff, Trash2 } from "lucide-react";
 import SpeechDisplay from "@/components/speech-display";
 import KeywordsModal from "@/components/keywords-modal";
 import ImgKeyModal from "@/components/img-key-modal";
-import { useSpeechRecognition } from "@/hooks/use-speech-recognition-simple";
+import { useRealTimeSpeech } from "@/hooks/use-real-time-speech";
 import { useKeywords } from "@/hooks/use-keywords";
 import { useKeywordDetection } from "@/hooks/use-keyword-detection";
 import { useImageGeneration } from "@/hooks/use-image-generation";
@@ -23,21 +23,10 @@ export default function MainPage() {
     startListening, 
     stopListening,
     speechLines,
-    recognitionRef,
-    setSpeechLines,
-    setTranscript,
-    allTextRef
-  } = useSpeechRecognition();
+    clearSpeech
+  } = useRealTimeSpeech();
   
-  const clearSpeech = () => {
-    // Clear the speech recognition state
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-    }
-    setSpeechLines(['', '', '', '']);
-    setTranscript('');
-    allTextRef.current = '';
-  };
+  // clearSpeech function is now provided by the hook
   
   const { displayedImages, generateImage } = useImageGeneration();
 
