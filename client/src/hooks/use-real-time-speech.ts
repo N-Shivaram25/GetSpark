@@ -20,6 +20,7 @@ export const useRealTimeSpeech = (): SpeechHook => {
   const lastSpeechTimeRef = useRef<number>(Date.now());
   const pauseTimeoutRef = useRef<NodeJS.Timeout>();
   const silenceTimeoutRef = useRef<NodeJS.Timeout>();
+  const isListeningRef = useRef(false);
   
   const CHARS_PER_LINE = 100; // Increased to fill more space
   const MAX_LINES = 4;
@@ -118,6 +119,9 @@ export const useRealTimeSpeech = (): SpeechHook => {
       return;
     }
 
+    setIsListening(true);
+    isListeningRef.current = true; // Track in ref for closures
+
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     
@@ -129,6 +133,7 @@ export const useRealTimeSpeech = (): SpeechHook => {
     let lastProcessedLength = 0;
 
     recognitionRef.current.onstart = () => {
+      console.log('Speech recognition started');
       setIsListening(true);
     };
 
@@ -182,18 +187,49 @@ export const useRealTimeSpeech = (): SpeechHook => {
 
     recognitionRef.current.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
-      setIsListening(false);
+      // Don't stop listening for network or aborted errors - restart instead
+      if (event.error === 'network' || event.error === 'aborted') {
+        console.log('Restarting speech recognition after error:', event.error);
+        setTimeout(() => {
+          if (recognitionRef.current && isListeningRef.current) {
+            recognitionRef.current.start();
+          }
+        }, 1000);
+      } else {
+        setIsListening(false);
+        isListeningRef.current = false;
+      }
     };
 
     recognitionRef.current.onend = () => {
-      setIsListening(false);
-      setTranscript('');
+      console.log('Speech recognition ended, isListening:', isListeningRef.current);
+      // Automatically restart if we're still supposed to be listening
+      if (isListeningRef.current) {
+        console.log('Restarting speech recognition to maintain continuous listening');
+        setTimeout(() => {
+          if (recognitionRef.current && isListeningRef.current) {
+            try {
+              recognitionRef.current.start();
+            } catch (error) {
+              console.error('Failed to restart speech recognition:', error);
+              setIsListening(false);
+              isListeningRef.current = false;
+            }
+          }
+        }, 100);
+      } else {
+        setTranscript('');
+      }
     };
 
     recognitionRef.current.start();
   }, [processCharacter, handlePauseDetection]);
 
   const stopListening = useCallback(() => {
+    console.log('Manually stopping speech recognition');
+    setIsListening(false);
+    isListeningRef.current = false; // Set this first to prevent auto-restart
+    
     if (recognitionRef.current) {
       recognitionRef.current.stop();
     }
@@ -201,7 +237,6 @@ export const useRealTimeSpeech = (): SpeechHook => {
     if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
     if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
     
-    setIsListening(false);
     setTranscript('');
   }, []);
 

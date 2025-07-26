@@ -133,6 +133,9 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced Pause Detection**: Added automatic punctuation insertion (comma after 5 seconds of pause, period after 10 seconds)
 - **Improved Typing Flow**: Enhanced real-time character-by-character typing from end of line 4 with smooth continuation
 - **Speech Recognition Optimization**: Better handling of interim results and final speech processing for uninterrupted text flow
+- **Continuous Listening Mode**: Implemented persistent speech recognition that maintains listening state even during long pauses
+- **Auto-Recovery System**: Speech recognition automatically restarts if interrupted by network issues or browser limitations
+- **Manual Control Only**: Speech recognition only stops when user manually clicks the stop button, ensuring uninterrupted long-form dictation
 
 ### Core Functionality Implementation
 - **Keyword Detection System**: Implemented real-time keyword detection for both Keyflow and Img Key modes using `useKeywordDetection` hook
