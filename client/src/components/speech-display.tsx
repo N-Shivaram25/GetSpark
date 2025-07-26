@@ -78,7 +78,8 @@ export default function SpeechDisplay({
       {/* Speech Display */}
       <div
         ref={containerRef}
-        className="rounded-xl p-6 bg-card min-h-[120px] font-mono text-sm leading-relaxed overflow-hidden shadow-sm"
+        className="rounded-xl p-6 bg-card min-h-[200px] font-mono text-base leading-relaxed overflow-hidden shadow-lg mx-auto"
+        style={{ width: '80vw' }}
       >
         <div className="space-y-1 text-card-foreground">
           {speechLines.length === 0 && !transcript ? (
@@ -108,18 +109,24 @@ export default function SpeechDisplay({
                     
                     {/* Colorful indicator at end of line 4 */}
                     {isLastLine && (
-                      <div className="ml-2 flex items-center">
+                      <div className="ml-3 flex items-center">
                         <div className={`
-                          w-3 h-5 rounded transition-all duration-300
+                          w-4 h-6 rounded-sm transition-all duration-200
                           ${isListening 
-                            ? 'bg-gradient-to-b from-green-400 via-blue-500 to-purple-600 animate-pulse shadow-lg' 
-                            : 'bg-gradient-to-b from-green-300 via-blue-400 to-purple-500 shadow-sm'
+                            ? 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 shadow-lg' 
+                            : 'bg-gradient-to-br from-green-300 via-blue-400 to-purple-500 shadow-sm'
                           }
-                        `}></div>
+                          ${isListening ? 'animate-pulse' : ''}
+                        `}>
+                          {/* Blinking effect when listening */}
+                          {isListening && (
+                            <div className="w-full h-full bg-white opacity-30 animate-ping rounded-sm"></div>
+                          )}
+                        </div>
                         
                         {/* Current transcript preview */}
                         {transcript && isListening && (
-                          <div className="ml-2 text-xs text-muted-foreground animate-pulse max-w-[100px] truncate">
+                          <div className="ml-3 text-sm text-blue-600 animate-pulse max-w-[150px] truncate font-medium">
                             {transcript}
                           </div>
                         )}

@@ -8,7 +8,7 @@ export function useSpeechRecognition() {
   const recognitionRef = useRef<any>(null);
   const allTextRef = useRef('');
   
-  const CHARS_PER_LINE = 50;
+  const CHARS_PER_LINE = 80; // Increased for wider display
   const MAX_LINES = 4;
 
   const startListening = useCallback(() => {
@@ -43,6 +43,7 @@ export function useSpeechRecognition() {
         }
       }
 
+      // Show live typing with interim transcript
       setTranscript(interimTranscript);
 
       if (finalTranscript) {
@@ -53,6 +54,9 @@ export function useSpeechRecognition() {
         // Update display with LIFO behavior
         updateDisplayLines();
         setTranscript(''); // Clear interim transcript
+      } else if (interimTranscript) {
+        // Live typing: temporarily add interim text to display
+        updateDisplayLinesWithInterim(interimTranscript);
       }
     };
     
@@ -98,6 +102,46 @@ export function useSpeechRecognition() {
           currentIndex += breakPoint;
           
           // Skip leading spaces on next line
+          while (currentIndex < displayText.length && displayText[currentIndex] === ' ') {
+            currentIndex++;
+          }
+        }
+      }
+      
+      setSpeechLines(lines);
+    };
+    
+    const updateDisplayLinesWithInterim = (interim: string) => {
+      const combinedText = allTextRef.current + (allTextRef.current ? ' ' : '') + interim;
+      const maxTotalChars = CHARS_PER_LINE * MAX_LINES;
+      
+      let displayText = combinedText;
+      if (combinedText.length > maxTotalChars) {
+        displayText = combinedText.slice(-maxTotalChars);
+      }
+      
+      // Break text into 4 lines
+      const lines = ['', '', '', ''];
+      let currentIndex = 0;
+      
+      for (let lineIndex = 0; lineIndex < MAX_LINES && currentIndex < displayText.length; lineIndex++) {
+        const remainingText = displayText.slice(currentIndex);
+        
+        if (remainingText.length <= CHARS_PER_LINE) {
+          lines[lineIndex] = remainingText;
+          break;
+        } else {
+          let breakPoint = CHARS_PER_LINE;
+          const segment = remainingText.slice(0, CHARS_PER_LINE + 10);
+          const lastSpaceIndex = segment.lastIndexOf(' ', CHARS_PER_LINE);
+          
+          if (lastSpaceIndex > CHARS_PER_LINE - 15 && lastSpaceIndex !== -1) {
+            breakPoint = lastSpaceIndex;
+          }
+          
+          lines[lineIndex] = remainingText.slice(0, breakPoint);
+          currentIndex += breakPoint;
+          
           while (currentIndex < displayText.length && displayText[currentIndex] === ' ') {
             currentIndex++;
           }
