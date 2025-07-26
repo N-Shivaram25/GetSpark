@@ -85,22 +85,32 @@ export const useRealTimeSpeech = (): SpeechHook => {
   }, [updateDisplay]);
 
   const handlePauseDetection = useCallback(() => {
-    const now = Date.now();
-    const timeSinceLastSpeech = now - lastSpeechTimeRef.current;
-    
     // Clear existing timeouts
     if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
     if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
     
-    // Set up pause detection timeouts
-    pauseTimeoutRef.current = setTimeout(() => {
-      addPunctuation(',');
-    }, SHORT_PAUSE_MS);
+    console.log('Setting up pause detection timeouts');
     
-    silenceTimeoutRef.current = setTimeout(() => {
-      addPunctuation('.');
-    }, LONG_PAUSE_MS);
-  }, [addPunctuation]);
+    // Set up comma timeout (5 seconds)
+    pauseTimeoutRef.current = setTimeout(() => {
+      console.log('Adding comma after 5 second pause');
+      addPunctuation(',');
+      
+      // After adding comma, set up period timeout (additional 5 seconds = 10 total)
+      silenceTimeoutRef.current = setTimeout(() => {
+        console.log('Converting comma to period after 10 second total pause');
+        // Replace the last comma with a period
+        const text = displayTextRef.current;
+        if (text.endsWith(',')) {
+          displayTextRef.current = text.slice(0, -1) + '.';
+          updateDisplay();
+        } else {
+          addPunctuation('.');
+        }
+      }, SHORT_PAUSE_MS); // Additional 5 seconds after comma
+      
+    }, SHORT_PAUSE_MS);
+  }, [addPunctuation, updateDisplay]);
 
   const startListening = useCallback(() => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
