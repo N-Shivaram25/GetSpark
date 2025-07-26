@@ -8,6 +8,7 @@ interface SpeechDisplayProps {
   isListening?: boolean;
   mode: 'keyflow' | 'imgkey';
   detectedKeywords: Array<{ keyword: string; timestamp: number }>;
+  isEnhancing?: boolean;
 }
 
 export default function SpeechDisplay({ 
@@ -15,7 +16,8 @@ export default function SpeechDisplay({
   transcript, 
   isListening = false, 
   mode, 
-  detectedKeywords 
+  detectedKeywords,
+  isEnhancing = false
 }: SpeechDisplayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { keywords } = useKeywords();
@@ -114,7 +116,7 @@ export default function SpeechDisplay({
         {speechLines.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <h4 className="text-sm font-semibold text-blue-800 mb-2">
-              Speech Pattern Status
+              Enhanced Speech Recognition Status
             </h4>
             <div className="space-y-1">
               <div className="text-xs text-blue-700">
@@ -122,11 +124,19 @@ export default function SpeechDisplay({
               </div>
               {speechLines.length >= 4 && (
                 <div className="text-xs text-blue-600 font-medium">
-                  🔄 LIFO Mode: Removing oldest words
+                  🔄 LIFO Mode: Removing oldest sentences
                 </div>
               )}
               <div className="text-xs text-blue-600">
-                Grammar correction: Active
+                OpenAI Grammar Correction: Active
+              </div>
+              {isEnhancing && (
+                <div className="text-xs text-blue-600 font-medium animate-pulse">
+                  🤖 OpenAI Enhancement: Processing...
+                </div>
+              )}
+              <div className="text-xs text-blue-600">
+                Complete sentence lines: Enabled
               </div>
             </div>
           </div>

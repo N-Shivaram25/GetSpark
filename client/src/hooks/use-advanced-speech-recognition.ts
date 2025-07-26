@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface AdvancedSpeechRecognitionState {
   isListening: boolean;
   transcript: string;
   speechLines: string[];
+  isEnhancing: boolean;
   startListening: () => void;
   stopListening: () => void;
   clearSpeech: () => void;
@@ -29,6 +31,7 @@ export function useAdvancedSpeechRecognition(): AdvancedSpeechRecognitionState {
   const [speechLines, setSpeechLines] = useState<string[]>([]);
   const [allWords, setAllWords] = useState<string[]>([]);
   const [isLifoMode, setIsLifoMode] = useState(false);
+  const [isEnhancing, setIsEnhancing] = useState(false);
   
   const recognitionRef = useRef<any | null>(null);
   const interimTranscriptRef = useRef('');
@@ -86,57 +89,86 @@ export function useAdvancedSpeechRecognition(): AdvancedSpeechRecognitionState {
     return correctedText.trim();
   }, [grammarRules]);
 
-  // Handle line management with LIFO pattern
-  const manageLines = useCallback((words: string[]) => {
-    const maxWordsPerLine = 12; // Approximate words per line
+  // Enhanced text processing with OpenAI
+  const enhanceTextWithOpenAI = useCallback(async (text: string): Promise<string> => {
+    setIsEnhancing(true);
+    try {
+      const response = await fetch('/api/enhance-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.enhancedText) {
+          return data.enhancedText;
+        }
+      }
+      return text;
+    } catch (error) {
+      console.error('OpenAI enhancement failed, using local correction:', error);
+      return applyGrammarCorrection(text);
+    } finally {
+      setIsEnhancing(false);
+    }
+  }, [applyGrammarCorrection]);
+
+  // Handle line management with LIFO pattern - ensuring complete sentences per line
+  const manageLines = useCallback(async (text: string) => {
     const maxLines = 4;
     
-    if (words.length === 0) {
+    if (!text.trim()) {
       setSpeechLines([]);
       setIsLifoMode(false);
       return;
     }
 
-    // Calculate lines needed
-    const totalLines = Math.ceil(words.length / maxWordsPerLine);
+    // Enhance text with OpenAI for better accuracy and formatting
+    const enhancedText = await enhanceTextWithOpenAI(text);
     
-    if (totalLines <= maxLines) {
-      // Normal mode: fill lines progressively
-      setIsLifoMode(false);
-      const lines: string[] = [];
+    // Split into sentences and ensure each sentence occupies complete lines
+    const sentences = enhancedText.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+    
+    // Group sentences into lines with maximum 12 words per line, but never break sentences
+    const lines: string[] = [];
+    let currentLine = '';
+    
+    for (const sentence of sentences) {
+      const words = sentence.trim().split(/\s+/);
       
-      for (let i = 0; i < totalLines; i++) {
-        const startIdx = i * maxWordsPerLine;
-        const endIdx = Math.min(startIdx + maxWordsPerLine, words.length);
-        const lineWords = words.slice(startIdx, endIdx);
-        lines.push(applyGrammarCorrection(lineWords.join(' ')));
+      // If adding this sentence would exceed 12 words, start a new line
+      const currentLineWords = currentLine.trim().split(/\s+/);
+      const totalWords = currentLine.trim() ? currentLineWords.length + words.length : words.length;
+      
+      if (totalWords <= 12 || !currentLine.trim()) {
+        // Add to current line
+        currentLine = currentLine.trim() ? `${currentLine} ${sentence}` : sentence;
+      } else {
+        // Complete current line and start new one
+        if (currentLine.trim()) {
+          lines.push(currentLine.trim());
+        }
+        currentLine = sentence;
       }
-      
+    }
+    
+    // Add the last line if it has content
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+    
+    if (lines.length <= maxLines) {
+      // Normal mode: display all lines
+      setIsLifoMode(false);
       setSpeechLines(lines);
     } else {
-      // LIFO mode: after 4 lines, start removing from beginning
+      // LIFO mode: remove oldest lines to keep only 4 lines
       setIsLifoMode(true);
-      
-      // Calculate how many words to remove from the beginning
-      const totalWordsInFourLines = maxLines * maxWordsPerLine;
-      const excessWords = words.length - totalWordsInFourLines;
-      
-      // Remove excess words from the beginning (LIFO pattern)
-      const displayWords = words.slice(excessWords);
-      
-      const lines: string[] = [];
-      for (let i = 0; i < maxLines; i++) {
-        const startIdx = i * maxWordsPerLine;
-        const endIdx = Math.min(startIdx + maxWordsPerLine, displayWords.length);
-        if (startIdx < displayWords.length) {
-          const lineWords = displayWords.slice(startIdx, endIdx);
-          lines.push(applyGrammarCorrection(lineWords.join(' ')));
-        }
-      }
-      
-      setSpeechLines(lines);
+      const displayLines = lines.slice(-maxLines); // Keep last 4 lines
+      setSpeechLines(displayLines);
     }
-  }, [applyGrammarCorrection]);
+  }, [enhanceTextWithOpenAI]);
 
   // Initialize speech recognition
   useEffect(() => {
@@ -204,9 +236,9 @@ export function useAdvancedSpeechRecognition(): AdvancedSpeechRecognitionState {
       const fullText = finalTranscript + interimTranscript;
       const words = fullText.trim().split(/\s+/).filter(word => word.length > 0);
       
-      // Update words and manage lines
+      // Update words and manage lines with enhanced text processing
       setAllWords(words);
-      manageLines(words);
+      manageLines(fullText.trim());
       
       // Set current transcript (last few words for real-time display)
       const recentWords = words.slice(-8); // Show last 8 words as current
@@ -266,6 +298,7 @@ export function useAdvancedSpeechRecognition(): AdvancedSpeechRecognitionState {
     isListening,
     transcript,
     speechLines,
+    isEnhancing,
     startListening,
     stopListening,
     clearSpeech

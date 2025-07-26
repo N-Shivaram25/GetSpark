@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { enhanceTextAccuracy } from "./openai-speech";
 import { insertKeywordSchema, insertImgKeyMappingSchema } from "@shared/schema";
 import { generateImageWithClipDrop } from "./clipdrop";
 import { generateImageWithDeepAI } from "./deepai";
@@ -16,6 +17,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(keywords);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch keywords" });
+    }
+  });
+
+  // OpenAI text enhancement endpoint
+  app.post("/api/enhance-text", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      const enhancedText = await enhanceTextAccuracy(text);
+      res.json({ 
+        originalText: text,
+        enhancedText,
+        success: true 
+      });
+    } catch (error) {
+      console.error('Text enhancement error:', error);
+      res.status(500).json({ 
+        error: "Failed to enhance text",
+        success: false 
+      });
     }
   });
 

@@ -161,11 +161,13 @@ Preferred communication style: Simple, everyday language.
 - **Timing Display**: Active keywords now show individual timing settings in the management interface
 
 ### Advanced Speech Recognition System (January 26, 2025)
-- **LIFO Pattern Implementation**: Continuous sentence formation up to 4 lines, then Last-In-First-Out word removal
-- **Advanced Grammar Correction**: Automatic punctuation placement and capitalization based on sentence structure
+- **LIFO Pattern Implementation**: Continuous sentence formation up to 4 lines, then Last-In-First-Out sentence removal
+- **OpenAI Integration**: GPT-4o powered grammar correction and text enhancement for superior accuracy
+- **Complete Sentence Lines**: Sentences never break mid-way, always occupy complete lines up to 12 words
 - **Pause-Resistant Processing**: Pauses in speech don't trigger line transitions - controlled by sentence flow logic
 - **Enhanced Voice-to-Text Accuracy**: Multi-alternative speech recognition with confidence scoring
-- **Real-time Status Display**: Visual indicators for speech pattern status, LIFO mode activation, and grammar correction
-- **Smart Line Management**: 12 words per line with intelligent overflow handling
+- **Real-time Status Display**: Visual indicators for speech pattern status, LIFO mode activation, and OpenAI processing
+- **Smart Line Management**: Intelligent sentence grouping ensuring no mid-sentence breaks
 - **Continuous Speech Flow**: Seamless text formation without interruption from natural speaking pauses
 - **Clear Speech Function**: One-click clear button to reset entire speech recognition session
+- **Fallback System**: Local grammar correction when OpenAI is unavailable

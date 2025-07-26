@@ -23,6 +23,7 @@ export default function MainPage() {
     startListening, 
     stopListening,
     speechLines,
+    isEnhancing,
     clearSpeech
   } = useAdvancedSpeechRecognition();
   
@@ -158,6 +159,7 @@ export default function MainPage() {
             isListening={isListening}
             mode={currentMode}
             detectedKeywords={detectedKeywords}
+            isEnhancing={isEnhancing}
           />
         </div>
 
