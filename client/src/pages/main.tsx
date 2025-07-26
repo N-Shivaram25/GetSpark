@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Plus, MicOff } from "lucide-react";
+import { Mic, Plus, MicOff, Trash2 } from "lucide-react";
 import SpeechDisplay from "@/components/speech-display";
 import KeywordsModal from "@/components/keywords-modal";
 import ImgKeyModal from "@/components/img-key-modal";
-import { useSpeechRecognition } from "@/hooks/use-speech-recognition-simple";
+import { useAdvancedSpeechRecognition } from "@/hooks/use-advanced-speech-recognition";
 import { useKeywords } from "@/hooks/use-keywords";
 import { useKeywordDetection } from "@/hooks/use-keyword-detection";
 import { useImageGeneration } from "@/hooks/use-image-generation";
@@ -22,8 +22,9 @@ export default function MainPage() {
     transcript, 
     startListening, 
     stopListening,
-    speechLines
-  } = useSpeechRecognition();
+    speechLines,
+    clearSpeech
+  } = useAdvancedSpeechRecognition();
   
   const { displayedImages, generateImage } = useImageGeneration();
 
@@ -129,8 +130,19 @@ export default function MainPage() {
         {/* Voice Display Box */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Live Speech</h3>
+            <h3 className="text-lg font-semibold text-foreground">Advanced Speech Recognition</h3>
             <div className="flex items-center space-x-3">
+              {speechLines.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearSpeech}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 size={16} className="mr-1" />
+                  Clear
+                </Button>
+              )}
               {isListening && (
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
