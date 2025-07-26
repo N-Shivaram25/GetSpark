@@ -133,32 +133,29 @@ export default function MainPage() {
 
         {/* Generated Images Display - Right below Speech Display */}
         {displayedImages.length > 0 && (
-          <div className="mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="mb-6 flex justify-center">
+            <div className="max-w-2xl w-full">
               {displayedImages.map((image) => (
-                <div key={image.id} className="relative bg-card rounded-lg shadow-sm overflow-hidden">
+                <div key={image.id} className="mb-4 bg-card rounded-lg shadow-lg overflow-hidden">
                   <img
                     src={image.url}
                     alt={`Generated for ${image.keyword}`}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-80 object-cover"
                     onError={(e) => {
                       console.error('Failed to load image:', image.url);
                       // Set a guaranteed working placeholder
                       e.currentTarget.src = `data:image/svg+xml;base64,${btoa(`
-                        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-                          <rect width="400" height="300" fill="#f0f0f0"/>
-                          <text x="200" y="150" text-anchor="middle" font-family="Arial" font-size="16" fill="#666">
+                        <svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+                          <rect width="600" height="400" fill="#f0f0f0"/>
+                          <text x="300" y="200" text-anchor="middle" font-family="Arial" font-size="18" fill="#666">
                             ${image.keyword}
                           </text>
                         </svg>
                       `)}`;
                     }}
                   />
-                  <div className="p-3">
-                    <h5 className="font-medium text-card-foreground">{image.keyword}</h5>
-                  </div>
-                  <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                    {image.timeLeft}s
+                  <div className="p-4 text-center">
+                    <h5 className="font-medium text-card-foreground text-lg">{image.keyword}</h5>
                   </div>
                 </div>
               ))}
