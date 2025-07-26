@@ -11,7 +11,7 @@ interface KeywordDetectionProps {
   transcript: string;
   speechLines: string[];
   mode: 'keyflow' | 'imgkey';
-  onKeywordDetected: (keyword: string, mode: 'keyflow' | 'imgkey') => void;
+  onKeywordDetected: (keyword: string, mode: 'keyflow' | 'imgkey', duration?: number) => void;
 }
 
 export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDetected }: KeywordDetectionProps) {
@@ -56,8 +56,8 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
           }]);
           setTriggeredImages(prev => new Set(Array.from(prev).concat(keyword)));
           
-          // Trigger image generation
-          onKeywordDetected(keywordObj.keyword, 'keyflow');
+          // Trigger image generation with keyword duration
+          onKeywordDetected(keywordObj.keyword, 'keyflow', keywordObj.duration);
         }
       });
     } else if (mode === 'imgkey') {

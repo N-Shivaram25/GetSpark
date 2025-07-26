@@ -35,10 +35,10 @@ export default function MainPage() {
     console.log('Available keywords:', keywords);
   }, [transcript, speechLines, currentMode, keywords]);
 
-  const handleKeywordDetected = (keyword: string, mode: 'keyflow' | 'imgkey') => {
-    console.log(`Keyword detected: ${keyword} in mode: ${mode}`);
+  const handleKeywordDetected = (keyword: string, mode: 'keyflow' | 'imgkey', duration?: number) => {
+    console.log(`Keyword detected: ${keyword} in mode: ${mode}, duration: ${duration || 6}`);
     if (mode === 'keyflow') {
-      generateImage(keyword);
+      generateImage(keyword, duration || 6);
     }
     // For imgkey mode, we'll implement custom image display later
   };

@@ -13,8 +13,6 @@ export async function generateImageWithClipDrop(prompt: string): Promise<string>
     
     const form = new FormData();
     form.append('prompt', enhancedPrompt);
-    form.append('width', '1024');
-    form.append('height', '1024');
 
     console.log('Attempting ClipDrop generation for enhanced prompt:', enhancedPrompt);
     

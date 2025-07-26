@@ -23,8 +23,8 @@ export function useImageGeneration() {
         id: Date.now().toString(),
         url: data.imageUrl,
         keyword,
-        timeLeft: 6,
-        source: 'clipdrop'
+        timeLeft: data.duration || 6,
+        source: data.source || 'clipdrop'
       };
       setDisplayedImages(prev => [...prev, newImage]);
     },
@@ -45,7 +45,7 @@ export function useImageGeneration() {
     return () => clearInterval(interval);
   }, []);
 
-  const generateImage = (keyword: string) => {
+  const generateImage = (keyword: string, duration: number = 6) => {
     generateImageMutation.mutate(keyword);
   };
 
