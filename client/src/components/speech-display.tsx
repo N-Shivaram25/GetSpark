@@ -81,7 +81,7 @@ export default function SpeechDisplay({
         className="rounded-xl p-6 bg-card min-h-[200px] font-mono text-base leading-relaxed overflow-hidden shadow-lg mx-auto"
         style={{ width: '80vw' }}
       >
-        <div className="space-y-2 text-card-foreground">
+        <div className="text-card-foreground" style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {speechLines.length === 0 && !transcript ? (
             <div className="text-muted-foreground italic">Start speaking to see your words appear here...</div>
           ) : (
@@ -93,10 +93,10 @@ export default function SpeechDisplay({
                 return (
                   <div 
                     key={index} 
-                    className="text-card-foreground h-7 flex items-center min-h-[28px]"
-                    style={{ lineHeight: '28px' }}
+                    className="text-card-foreground flex items-start"
+                    style={{ height: '32px', lineHeight: '32px', minHeight: '32px' }}
                   >
-                    <div className={`flex-1 ${isLastLine ? 'pr-2' : ''}`}>
+                    <div className="flex-1" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                       {line ? (
                         <span 
                           dangerouslySetInnerHTML={{ 
@@ -106,12 +106,7 @@ export default function SpeechDisplay({
                       ) : (
                         <span className="text-gray-300 select-none">&nbsp;</span>
                       )}
-                      {/* Fill remaining space on line 4 during live typing */}
-                      {isLastLine && transcript && isListening && (
-                        <span className="text-blue-500 opacity-70 animate-pulse ml-1">
-                          {transcript}
-                        </span>
-                      )}
+
                     </div>
                     
                     {/* Colorful indicator at end of line 4 */}
