@@ -18,9 +18,9 @@ export const useRealTimeSpeech = (): SpeechHook => {
   const displayTextRef = useRef('');
   const animationRef = useRef<number>();
   
-  const CHARS_PER_LINE = 80;
+  const CHARS_PER_LINE = 100; // Increased to fill more space
   const MAX_LINES = 4;
-  const MAX_TOTAL_CHARS = CHARS_PER_LINE * MAX_LINES; // 320 total chars
+  const MAX_TOTAL_CHARS = CHARS_PER_LINE * MAX_LINES; // 400 total chars
 
   const updateDisplay = useCallback(() => {
     const text = displayTextRef.current;
@@ -33,13 +33,33 @@ export const useRealTimeSpeech = (): SpeechHook => {
     const finalText = displayTextRef.current;
     const lines = ['', '', '', ''];
     
-    // Fill lines character by character
+    // Fill lines with proper word wrapping to utilize full width
     let charIndex = 0;
     for (let lineIndex = 0; lineIndex < MAX_LINES && charIndex < finalText.length; lineIndex++) {
-      const remainingChars = finalText.length - charIndex;
-      const charsForThisLine = Math.min(CHARS_PER_LINE, remainingChars);
-      lines[lineIndex] = finalText.substring(charIndex, charIndex + charsForThisLine);
-      charIndex += charsForThisLine;
+      const remainingText = finalText.substring(charIndex);
+      
+      if (remainingText.length <= CHARS_PER_LINE) {
+        // Remaining text fits in current line
+        lines[lineIndex] = remainingText;
+        break;
+      } else {
+        // Find the best break point at a word boundary
+        let breakPoint = CHARS_PER_LINE;
+        const segment = remainingText.substring(0, CHARS_PER_LINE + 20);
+        const lastSpaceIndex = segment.lastIndexOf(' ', CHARS_PER_LINE);
+        
+        if (lastSpaceIndex > CHARS_PER_LINE - 15 && lastSpaceIndex !== -1) {
+          breakPoint = lastSpaceIndex;
+        }
+        
+        lines[lineIndex] = remainingText.substring(0, breakPoint);
+        charIndex += breakPoint;
+        
+        // Skip leading spaces on next line
+        while (charIndex < finalText.length && finalText[charIndex] === ' ') {
+          charIndex++;
+        }
+      }
     }
     
     setSpeechLines(lines);

@@ -81,7 +81,7 @@ export default function SpeechDisplay({
         className="rounded-xl p-6 bg-card min-h-[200px] font-mono text-base leading-relaxed overflow-hidden shadow-lg mx-auto"
         style={{ width: '80vw' }}
       >
-        <div className="space-y-1 text-card-foreground">
+        <div className="space-y-2 text-card-foreground">
           {speechLines.length === 0 && !transcript ? (
             <div className="text-muted-foreground italic">Start speaking to see your words appear here...</div>
           ) : (
@@ -93,9 +93,10 @@ export default function SpeechDisplay({
                 return (
                   <div 
                     key={index} 
-                    className="text-card-foreground h-6 transition-all duration-300 flex items-center"
+                    className="text-card-foreground h-7 flex items-center min-h-[28px]"
+                    style={{ lineHeight: '28px' }}
                   >
-                    <div className="flex-1">
+                    <div className={`flex-1 ${isLastLine ? 'pr-2' : ''}`}>
                       {line ? (
                         <span 
                           dangerouslySetInnerHTML={{ 
@@ -105,13 +106,19 @@ export default function SpeechDisplay({
                       ) : (
                         <span className="text-gray-300 select-none">&nbsp;</span>
                       )}
+                      {/* Fill remaining space on line 4 during live typing */}
+                      {isLastLine && transcript && isListening && (
+                        <span className="text-blue-500 opacity-70 animate-pulse ml-1">
+                          {transcript}
+                        </span>
+                      )}
                     </div>
                     
                     {/* Colorful indicator at end of line 4 */}
                     {isLastLine && (
-                      <div className="ml-3 flex items-center">
+                      <div className="flex items-center">
                         <div className={`
-                          w-4 h-6 rounded-sm transition-all duration-200
+                          w-4 h-6 rounded-sm transition-all duration-200 ml-2
                           ${isListening 
                             ? 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 shadow-lg' 
                             : 'bg-gradient-to-br from-green-300 via-blue-400 to-purple-500 shadow-sm'
@@ -123,13 +130,6 @@ export default function SpeechDisplay({
                             <div className="w-full h-full bg-white opacity-30 animate-ping rounded-sm"></div>
                           )}
                         </div>
-                        
-                        {/* Current transcript preview */}
-                        {transcript && isListening && (
-                          <div className="ml-3 text-sm text-blue-600 animate-pulse max-w-[150px] truncate font-medium">
-                            {transcript}
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
