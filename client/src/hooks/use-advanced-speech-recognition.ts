@@ -114,9 +114,10 @@ export function useAdvancedSpeechRecognition(): AdvancedSpeechRecognitionState {
     }
   }, [applyGrammarCorrection]);
 
-  // Handle line management with LIFO pattern - ensuring complete sentences per line
+  // Handle strict 4-line management with LIFO word flow
   const manageLines = useCallback(async (text: string) => {
     const maxLines = 4;
+    const maxWordsPerLine = 10; // Reduced to ensure space at end of line 4
     
     if (!text.trim()) {
       setSpeechLines([]);
@@ -127,46 +128,59 @@ export function useAdvancedSpeechRecognition(): AdvancedSpeechRecognitionState {
     // Enhance text with OpenAI for better accuracy and formatting
     const enhancedText = await enhanceTextWithOpenAI(text);
     
-    // Split into sentences and ensure each sentence occupies complete lines
-    const sentences = enhancedText.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+    // Split into words and manage strict 4-line display
+    const words = enhancedText.trim().split(/\s+/).filter(word => word.length > 0);
+    const totalCapacity = maxLines * maxWordsPerLine; // 40 words total capacity
     
-    // Group sentences into lines with maximum 12 words per line, but never break sentences
-    const lines: string[] = [];
-    let currentLine = '';
-    
-    for (const sentence of sentences) {
-      const words = sentence.trim().split(/\s+/);
-      
-      // If adding this sentence would exceed 12 words, start a new line
-      const currentLineWords = currentLine.trim().split(/\s+/);
-      const totalWords = currentLine.trim() ? currentLineWords.length + words.length : words.length;
-      
-      if (totalWords <= 12 || !currentLine.trim()) {
-        // Add to current line
-        currentLine = currentLine.trim() ? `${currentLine} ${sentence}` : sentence;
-      } else {
-        // Complete current line and start new one
-        if (currentLine.trim()) {
-          lines.push(currentLine.trim());
-        }
-        currentLine = sentence;
-      }
-    }
-    
-    // Add the last line if it has content
-    if (currentLine.trim()) {
-      lines.push(currentLine.trim());
-    }
-    
-    if (lines.length <= maxLines) {
-      // Normal mode: display all lines
+    if (words.length <= totalCapacity) {
+      // Normal mode: distribute words across lines with vibrant space
       setIsLifoMode(false);
+      const lines: string[] = [];
+      
+      for (let i = 0; i < maxLines; i++) {
+        const startIdx = i * maxWordsPerLine;
+        const endIdx = Math.min(startIdx + maxWordsPerLine, words.length);
+        
+        if (startIdx < words.length) {
+          const lineWords = words.slice(startIdx, endIdx);
+          let lineText = lineWords.join(' ');
+          
+          // Add vibrant space indicator at end of line 4 if it's not full
+          if (i === maxLines - 1 && lineWords.length < maxWordsPerLine) {
+            lineText += ' ■'; // Vibrant space indicator
+          }
+          
+          lines.push(lineText);
+        }
+      }
+      
       setSpeechLines(lines);
     } else {
-      // LIFO mode: remove oldest lines to keep only 4 lines
+      // LIFO mode: remove words from beginning, add to end
       setIsLifoMode(true);
-      const displayLines = lines.slice(-maxLines); // Keep last 4 lines
-      setSpeechLines(displayLines);
+      
+      // Keep only the last 40 words (capacity for 4 lines)
+      const displayWords = words.slice(-totalCapacity);
+      
+      const lines: string[] = [];
+      for (let i = 0; i < maxLines; i++) {
+        const startIdx = i * maxWordsPerLine;
+        const endIdx = Math.min(startIdx + maxWordsPerLine, displayWords.length);
+        
+        if (startIdx < displayWords.length) {
+          const lineWords = displayWords.slice(startIdx, endIdx);
+          let lineText = lineWords.join(' ');
+          
+          // Add vibrant space indicator at end of line 4 if space available
+          if (i === maxLines - 1 && lineWords.length < maxWordsPerLine) {
+            lineText += ' ■'; // Vibrant space for new words
+          }
+          
+          lines.push(lineText);
+        }
+      }
+      
+      setSpeechLines(lines);
     }
   }, [enhanceTextWithOpenAI]);
 

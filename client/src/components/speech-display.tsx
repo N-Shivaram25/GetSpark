@@ -85,26 +85,46 @@ export default function SpeechDisplay({
             <div className="text-muted-foreground italic">Start speaking to see your words appear here...</div>
           ) : (
             <>
-              {speechLines.map((line, index) => (
-                <div 
-                  key={index} 
-                  className="text-card-foreground"
-                  dangerouslySetInnerHTML={{ __html: highlightKeywords(line) }}
-                />
-              ))}
-              {transcript && (
-                <div 
-                  className="text-card-foreground opacity-75"
-                  dangerouslySetInnerHTML={{ 
-                    __html: highlightKeywords(transcript) + 
-                           (isListening ? '<span class="animate-pulse">|</span>' : '')
-                  }}
-                />
+              {/* Always render exactly 4 lines with strict line management */}
+              {Array.from({ length: 4 }).map((_, index) => {
+                const line = speechLines[index] || '';
+                const isLastLine = index === 3;
+                const hasVibrantSpace = line.includes('■');
+                
+                return (
+                  <div 
+                    key={index} 
+                    className="text-card-foreground h-5 transition-all duration-300"
+                  >
+                    {line ? (
+                      <>
+                        <span 
+                          dangerouslySetInnerHTML={{ 
+                            __html: highlightKeywords(line.replace(' ■', '')) 
+                          }}
+                        />
+                        {/* Vibrant space indicator at end of line 4 */}
+                        {isLastLine && hasVibrantSpace && (
+                          <span className="ml-2 inline-block">
+                            <span className="bg-gradient-to-r from-green-400 to-blue-500 text-white px-2 py-0.5 rounded-full text-xs animate-pulse font-bold">
+                              ⟨NEW⟩
+                            </span>
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-gray-300 select-none">&nbsp;</span>
+                    )}
+                  </div>
+                );
+              })}
+              
+              {/* Current transcript (if any) - this should not create a 5th line */}
+              {transcript && speechLines.length < 4 && (
+                <div className="text-card-foreground opacity-75 text-xs text-muted-foreground">
+                  Current: {transcript} {isListening && <span className="animate-pulse">|</span>}
+                </div>
               )}
-              {/* Ensure we always have 4 lines */}
-              {Array.from({ length: Math.max(0, 4 - speechLines.length - (transcript ? 1 : 0)) }).map((_, index) => (
-                <div key={`empty-${index}`} className="opacity-0">Line {speechLines.length + (transcript ? 1 : 0) + index + 1}</div>
-              ))}
             </>
           )}
         </div>
@@ -124,7 +144,7 @@ export default function SpeechDisplay({
               </div>
               {speechLines.length >= 4 && (
                 <div className="text-xs text-blue-600 font-medium">
-                  🔄 LIFO Mode: Removing oldest sentences
+                  🔄 LIFO Mode: Words flow backward from line 1
                 </div>
               )}
               <div className="text-xs text-blue-600">
@@ -136,7 +156,10 @@ export default function SpeechDisplay({
                 </div>
               )}
               <div className="text-xs text-blue-600">
-                Complete sentence lines: Enabled
+                Strict 4-line limit: Enforced
+              </div>
+              <div className="text-xs text-blue-600">
+                Vibrant entry space: Line 4 end
               </div>
             </div>
           </div>

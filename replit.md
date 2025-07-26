@@ -161,13 +161,16 @@ Preferred communication style: Simple, everyday language.
 - **Timing Display**: Active keywords now show individual timing settings in the management interface
 
 ### Advanced Speech Recognition System (January 26, 2025)
-- **LIFO Pattern Implementation**: Continuous sentence formation up to 4 lines, then Last-In-First-Out sentence removal
+- **Strict 4-Line Limit**: Never exceeds 4 lines, enforced at all times with visual line structure
+- **LIFO Word Flow**: Words disappear from beginning of line 1, new words enter at vibrant space in line 4
+- **Vibrant Entry Space**: Visual indicator at end of line 4 showing where new words enter
+- **Backward Word Movement**: First line words disappear progressively as new words flow in
 - **OpenAI Integration**: GPT-4o powered grammar correction and text enhancement for superior accuracy
-- **Complete Sentence Lines**: Sentences never break mid-way, always occupy complete lines up to 12 words
-- **Pause-Resistant Processing**: Pauses in speech don't trigger line transitions - controlled by sentence flow logic
+- **10 Words Per Line**: Reduced from 12 to ensure vibrant space availability at line 4 end
+- **Pause-Resistant Processing**: Pauses in speech don't trigger line transitions - controlled by word flow logic
 - **Enhanced Voice-to-Text Accuracy**: Multi-alternative speech recognition with confidence scoring
-- **Real-time Status Display**: Visual indicators for speech pattern status, LIFO mode activation, and OpenAI processing
-- **Smart Line Management**: Intelligent sentence grouping ensuring no mid-sentence breaks
+- **Real-time Status Display**: Visual indicators for LIFO mode, OpenAI processing, and vibrant space status
+- **Smart Word Management**: 40-word total capacity (10 words × 4 lines) with overflow handling
 - **Continuous Speech Flow**: Seamless text formation without interruption from natural speaking pauses
 - **Clear Speech Function**: One-click clear button to reset entire speech recognition session
 - **Fallback System**: Local grammar correction when OpenAI is unavailable
