@@ -46,7 +46,7 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
             keyword: keywordObj.keyword, 
             timestamp: currentTime 
           }]);
-          setTriggeredImages(prev => new Set([...prev, keyword]));
+          setTriggeredImages(prev => new Set(Array.from(prev).concat(keyword)));
           
           // Trigger image generation
           onKeywordDetected(keywordObj.keyword, 'keyflow');
@@ -54,7 +54,7 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
       });
     } else if (mode === 'imgkey') {
       // Check for mapped keywords in Img Key mode
-      imgKeyMappings.forEach((mapping: any) => {
+      (imgKeyMappings as any[]).forEach((mapping: any) => {
         const keyword = mapping.keyword.toLowerCase();
         
         // Check if keyword exists in the text and hasn't been triggered yet
@@ -65,7 +65,7 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
             keyword: mapping.keyword, 
             timestamp: currentTime 
           }]);
-          setTriggeredImages(prev => new Set([...prev, keyword]));
+          setTriggeredImages(prev => new Set(Array.from(prev).concat(keyword)));
           
           // Trigger custom image display
           onKeywordDetected(mapping.keyword, 'imgkey');
