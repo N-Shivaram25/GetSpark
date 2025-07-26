@@ -109,35 +109,22 @@ export default function SpeechDisplay({
 
                     </div>
                     
-                    {/* Enhanced colorful indicator at end of line 4 */}
+                    {/* Colorful indicator at end of line 4 */}
                     {isLastLine && (
                       <div className="flex items-center">
                         <div className={`
-                          w-4 h-6 rounded-sm transition-all duration-300 ml-2 relative overflow-hidden
+                          w-4 h-6 rounded-sm transition-all duration-200 ml-2
                           ${isListening 
-                            ? 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 shadow-lg shadow-green-200' 
+                            ? 'bg-gradient-to-br from-green-400 via-blue-500 to-purple-600 shadow-lg' 
                             : 'bg-gradient-to-br from-green-300 via-blue-400 to-purple-500 shadow-sm'
                           }
                           ${isListening ? 'animate-pulse' : ''}
                         `}>
-                          {/* Enhanced blinking effect when listening */}
+                          {/* Blinking effect when listening */}
                           {isListening && (
-                            <>
-                              <div className="absolute inset-0 bg-white opacity-20 animate-ping"></div>
-                              <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white opacity-30"></div>
-                              {/* Breathing effect overlay */}
-                              <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 to-pink-300/20 animate-pulse"></div>
-                            </>
+                            <div className="w-full h-full bg-white opacity-30 animate-ping rounded-sm"></div>
                           )}
                         </div>
-                        {/* Additional typing indicator when listening */}
-                        {isListening && (
-                          <div className="ml-1 flex space-x-0.5">
-                            <div className="w-1 h-1 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                            <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                            <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>

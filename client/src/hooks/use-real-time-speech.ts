@@ -27,56 +27,6 @@ export const useRealTimeSpeech = (): SpeechHook => {
   const MAX_TOTAL_CHARS = CHARS_PER_LINE * MAX_LINES; // 400 total chars
   const SHORT_PAUSE_MS = 5000; // 5 seconds for comma
   const LONG_PAUSE_MS = 10000; // 10 seconds for period
-  const TYPING_DELAY_BASE = 30; // Base typing delay in ms
-  const TYPING_DELAY_VARIANCE = 20; // Random variance in typing speed
-
-  // Enhanced transcript accuracy improvement function
-  const enhanceTranscriptAccuracy = useCallback((transcript: string): string => {
-    if (!transcript) return transcript;
-    
-    // Common speech recognition corrections
-    let enhanced = transcript
-      // Fix common homophone errors
-      .replace(/\bthere\b/gi, (match, offset, string) => {
-        // Context-aware replacement
-        const beforeWord = string.substring(Math.max(0, offset - 10), offset).toLowerCase();
-        const afterWord = string.substring(offset + match.length, offset + match.length + 10).toLowerCase();
-        
-        if (beforeWord.includes('over') || afterWord.includes('is') || afterWord.includes('are')) {
-          return 'there';
-        }
-        return match;
-      })
-      // Fix capitalization after periods
-      .replace(/\.\s*([a-z])/g, (match, letter) => `. ${letter.toUpperCase()}`)
-      // Fix common contractions
-      .replace(/\bcant\b/gi, "can't")
-      .replace(/\bdont\b/gi, "don't")
-      .replace(/\bwont\b/gi, "won't")
-      .replace(/\bitsnt\b/gi, "isn't")
-      .replace(/\bwhats\b/gi, "what's")
-      // Fix common word recognition errors and homophones
-      .replace(/\brecognised\b/gi, "recognized")
-      .replace(/\bcolour\b/gi, "color")
-      .replace(/\bto\b(?=\s+\w+ing\b)/gi, "too") // "to walking" -> "too walking"
-      .replace(/\byour\b(?=\s+(welcome|right|correct))/gi, "you're")
-      .replace(/\bits\b(?=\s+(been|going|time))/gi, "it's")
-      .replace(/\bwere\b(?=\s+(going|coming))/gi, "we're")
-      .replace(/\btheir\b(?=\s+(is|are|was))/gi, "there")
-      // Fix numbers and common tech terms
-      .replace(/\bone\b/gi, (match, offset, string) => {
-        const afterWord = string.substring(offset + match.length, offset + match.length + 10).toLowerCase();
-        if (afterWord.includes('more') || afterWord.includes('time')) return 'one';
-        return match;
-      })
-      // Clean up multiple spaces and normalize punctuation
-      .replace(/\s+/g, ' ')
-      .replace(/\s+([,.!?;:])/g, '$1') // Remove spaces before punctuation
-      .replace(/([,.!?;:])\s*([a-z])/g, (match, punct, letter) => `${punct} ${letter.toUpperCase()}`)
-      .trim();
-      
-    return enhanced;
-  }, []);
 
   const updateDisplay = useCallback(() => {
     const text = displayTextRef.current;
@@ -125,37 +75,6 @@ export const useRealTimeSpeech = (): SpeechHook => {
     displayTextRef.current += char;
     updateDisplay();
   }, [updateDisplay]);
-
-  // Realistic typing animation function
-  const simulateTypingAnimation = useCallback((text: string, startDelay: number = 0) => {
-    let charIndex = 0;
-    
-    const typeNextChar = () => {
-      if (charIndex < text.length) {
-        processCharacter(text[charIndex]);
-        charIndex++;
-        
-        // Calculate realistic typing delay
-        const baseDelay = TYPING_DELAY_BASE;
-        const variance = Math.random() * TYPING_DELAY_VARIANCE;
-        const isSpace = text[charIndex - 1] === ' ';
-        const isPunctuation = /[,.!?;:]/.test(text[charIndex - 1]);
-        
-        // Longer delays after punctuation and spaces for realism
-        let delay = baseDelay + variance;
-        if (isPunctuation) delay += 50;
-        if (isSpace) delay += 20;
-        
-        setTimeout(typeNextChar, delay);
-      }
-    };
-    
-    if (startDelay > 0) {
-      setTimeout(typeNextChar, startDelay);
-    } else {
-      typeNextChar();
-    }
-  }, [processCharacter]);
 
   const addPunctuation = useCallback((punctuation: string) => {
     // Only add punctuation if the last character isn't already punctuation
@@ -206,17 +125,10 @@ export const useRealTimeSpeech = (): SpeechHook => {
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
     recognitionRef.current = new SpeechRecognition();
     
-    // Enhanced speech recognition settings for better accuracy
     recognitionRef.current.continuous = true;
     recognitionRef.current.interimResults = true;
     recognitionRef.current.lang = 'en-US';
-    recognitionRef.current.maxAlternatives = 3; // Consider multiple alternatives
-    recognitionRef.current.serviceURI = 'wss://api.speechmatics.com/v2'; // Fallback service
-    
-    // Enhanced grammar and language model
-    if (recognitionRef.current.grammars) {
-      recognitionRef.current.grammars.addFromString('#JSGF V1.0; grammar speech; public <speech> = * ;', 1);
-    }
+    recognitionRef.current.maxAlternatives = 1;
 
     let lastProcessedLength = 0;
 
@@ -226,63 +138,47 @@ export const useRealTimeSpeech = (): SpeechHook => {
     };
 
     recognitionRef.current.onresult = (event: any) => {
-      let bestTranscript = '';
-      let confidence = 0;
+      let currentTranscript = '';
       
-      // Enhanced transcript processing with confidence scoring
+      // Get the latest transcript
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        
-        // Get the best alternative with highest confidence
-        let bestAlternative = result[0];
-        let bestConfidence = result[0].confidence || 0.8;
-        
-        // Check all alternatives for better accuracy
-        for (let j = 0; j < Math.min(result.length, 3); j++) {
-          const alternative = result[j];
-          const altConfidence = alternative.confidence || 0.5;
-          if (altConfidence > bestConfidence) {
-            bestAlternative = alternative;
-            bestConfidence = altConfidence;
-          }
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          currentTranscript += transcript;
+        } else {
+          currentTranscript += transcript;
         }
-        
-        bestTranscript += bestAlternative.transcript;
-        confidence = Math.max(confidence, bestConfidence);
       }
-
-      // Apply post-processing for common speech recognition errors
-      bestTranscript = enhanceTranscriptAccuracy(bestTranscript);
 
       // Update last speech time and clear pause timeouts when actively speaking
       lastSpeechTimeRef.current = Date.now();
       if (pauseTimeoutRef.current) clearTimeout(pauseTimeoutRef.current);
       if (silenceTimeoutRef.current) clearTimeout(silenceTimeoutRef.current);
 
-      setTranscript(bestTranscript);
+      setTranscript(currentTranscript);
 
-      // Enhanced typing animation with realistic delays
-      if (bestTranscript.length > lastProcessedLength) {
-        const newText = bestTranscript.slice(lastProcessedLength);
+      // Process new characters one by one for real-time typing effect
+      if (currentTranscript.length > lastProcessedLength) {
+        const newText = currentTranscript.slice(lastProcessedLength);
         
-        // Use immediate character processing for real-time effect instead of animation
-        // simulateTypingAnimation provides too much delay - use direct processing
+        // Add characters immediately for real-time typing
         for (let i = 0; i < newText.length; i++) {
           processCharacter(newText[i]);
         }
         
-        lastProcessedLength = bestTranscript.length;
+        lastProcessedLength = currentTranscript.length;
       }
 
-      // Handle final results with better processing
+      // Handle final results
       if (event.results[event.results.length - 1].isFinal) {
-        console.log(`Final result with confidence: ${confidence}`);
+        // Update last speech time for pause detection
         lastSpeechTimeRef.current = Date.now();
         
-        // Add space after final result immediately
+        // Add space after final result
         setTimeout(() => {
           processCharacter(' ');
           setTranscript('');
+          // Start pause detection after final result
           handlePauseDetection();
           lastProcessedLength = 0;
         }, 100);
