@@ -75,6 +75,11 @@ export default function MainPage() {
   } = useVoiceToTopic(transcript);
 
   const handleModeSwitch = (mode: 'keyflow' | 'imgkey' | 'voicetopic') => {
+    // Stop microphone when switching modes
+    if (isListening) {
+      stopListening();
+    }
+    
     setCurrentMode(mode);
     if (mode === 'imgkey') {
       setShowImgKeyModal(true);
@@ -110,12 +115,12 @@ export default function MainPage() {
 
           {/* Top Right Controls */}
           <div className="flex items-center space-x-4">
-            {/* Insert Keywords Button */}
-            {(currentMode === 'keyflow' || currentMode === 'imgkey') && (
+            {/* Insert Keywords Button - Only show for Keyflow mode */}
+            {currentMode === 'keyflow' && (
               <Button
                 variant="outline"
                 onClick={() => setShowKeywordsModal(true)}
-                className="flex items-center space-x-2 bg-white/50 backdrop-blur hover:bg-white/80 transition-all"
+                className="flex items-center space-x-2 bg-white/50 backdrop-blur hover:bg-white/80 transition-all shadow-lg"
               >
                 <Plus size={16} />
                 <span>Insert Keywords</span>
@@ -250,25 +255,37 @@ export default function MainPage() {
       </footer>
 
       {/* Fixed Voice Control Button */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-8 right-8 z-50">
         <div className="relative mic-wrapper">
-          {/* Circular wave animations when listening */}
+          {/* Enhanced circular wave animations when listening */}
           {isListening && (
             <>
+              <div className="mic-circle"></div>
               <div className="mic-circle"></div>
               <div className="mic-circle"></div>
             </>
           )}
           <Button
             onClick={isListening ? stopListening : startListening}
+            disabled={isProcessing}
             className={cn(
-              "w-16 h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110",
+              "w-20 h-20 rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 relative overflow-hidden",
               isListening 
                 ? "voice-button-listening" 
-                : "bg-primary text-primary-foreground hover:bg-primary/90"
+                : isProcessing
+                ? "bg-gradient-to-r from-orange-500 to-red-500 text-white"
+                : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
             )}
           >
-            {isListening ? <MicOff size={24} /> : <Mic size={24} />}
+            {isProcessing ? (
+              <div className="animate-spin">
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full"></div>
+              </div>
+            ) : isListening ? (
+              <MicOff size={28} />
+            ) : (
+              <Mic size={28} />
+            )}
           </Button>
         </div>
       </div>
