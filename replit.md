@@ -183,14 +183,18 @@ Preferred communication style: Simple, everyday language.
 - **Seamless Text Flow**: Natural progression from line 1→2→3→4, then LIFO behavior when capacity reached
 
 ### Major Enhancement Update (January 28, 2025)
-- **OpenAI Whisper Integration**: Replaced Web Speech API with OpenAI Whisper for superior accuracy and grammar correction
-- **Advanced Grammar Correction**: Dual-layer correction using OpenAI GPT-4o and LanguageTool Plus API
+- **Web Speech API Implementation**: Robust continuous speech recognition with auto-restart functionality for uninterrupted long-form dictation
+- **Continuous Speech Recognition**: Automatic restart mechanism prevents mid-sentence stops during continuous speaking
+- **Character-Based Text Flow**: Enhanced LIFO text management with 320-character capacity across 4 lines (80 chars each)
+- **Enhanced Microphone Animations**: 3-circle wave animations with staggered timing and improved visual effects
+- **Mode-Specific UI Controls**: Keyflow mode shows only "Insert Keywords" option as requested
+- **Auto-Stop on Mode Switch**: Microphone automatically stops when switching between modes for better UX
+- **Ultimate Landing Page Design**: Premium gradient backgrounds, floating particles, feature cards, and animated elements
 - **ClipDrop Image Generation**: Fixed and enhanced image generation in Keyflow mode with better prompts and fallbacks
 - **Voice to Topic Mode**: New intelligent mode for educational content with real-time image search and AI explanations
-- **Ultimate UI Redesign**: Beautiful gradient backgrounds, glassmorphism effects, and premium design elements
 - **Three Mode System**: Keyflow (AI images), Img Key (custom images), Voice to Topic (educational content)
 - **RapidAPI Integration**: Real-Time Image Search and Gemini Pro AI for comprehensive topic information
-- **Enhanced Visual Effects**: Animated backgrounds, floating elements, and sophisticated voice button animations
+- **Enhanced Visual Effects**: 20px enlarged microphone button with gradient styling and processing states
 - **Smart Topic Detection**: Automatic extraction of educational topics from speech with complexity level detection
 - **Side Panel Interface**: Sliding topic panel with images, definitions, and code examples for Voice to Topic mode
 - **Production Ready**: All API integrations working with proper error handling and fallback systems

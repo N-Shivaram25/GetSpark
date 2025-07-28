@@ -20,8 +20,10 @@ export function useWhisperSpeech(): WhisperSpeechHook {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const finalTranscriptRef = useRef('');
+  const restartTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Initialize Web Speech API as fallback
+  // Initialize Web Speech API with continuous recognition
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -30,6 +32,9 @@ export function useWhisperSpeech(): WhisperSpeechHook {
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
+      
+
       
       recognition.onstart = () => {
         console.log('Speech recognition started');
@@ -37,30 +42,65 @@ export function useWhisperSpeech(): WhisperSpeechHook {
       };
       
       recognition.onresult = (event: any) => {
-        let currentTranscript = '';
+        let interimTranscript = '';
         
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
           if (result.isFinal) {
-            currentTranscript += result[0].transcript + ' ';
+            finalTranscriptRef.current += result[0].transcript + ' ';
           } else {
-            currentTranscript += result[0].transcript;
+            interimTranscript += result[0].transcript;
           }
         }
         
+        const currentTranscript = finalTranscriptRef.current + interimTranscript;
         setTranscript(currentTranscript.trim());
         updateSpeechLines(currentTranscript.trim());
       };
       
       recognition.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setIsProcessing(false);
+        
+        // Don't restart on certain errors
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          setIsListening(false);
+          setIsProcessing(false);
+          return;
+        }
+        
+        // Auto-restart for other errors if still listening
+        if (isListening) {
+          restartTimeoutRef.current = setTimeout(() => {
+            if (recognitionRef.current && isListening) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.error('Failed to restart recognition:', e);
+              }
+            }
+          }, 100);
+        }
       };
       
       recognition.onend = () => {
         console.log('Speech recognition ended');
-        setIsListening(false);
-        setIsProcessing(false);
+        
+        // Auto-restart if we're still supposed to be listening
+        if (isListening) {
+          restartTimeoutRef.current = setTimeout(() => {
+            if (recognitionRef.current && isListening) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.error('Failed to restart recognition:', e);
+                setIsListening(false);
+                setIsProcessing(false);
+              }
+            }
+          }, 100);
+        } else {
+          setIsProcessing(false);
+        }
       };
       
       recognitionRef.current = recognition;
@@ -68,25 +108,45 @@ export function useWhisperSpeech(): WhisperSpeechHook {
   }, []);
 
   const updateSpeechLines = useCallback((text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      setSpeechLines(['', '', '', '']);
+      return;
+    }
     
-    const words = text.split(' ');
+    // Character-based approach for better text flow
+    const maxCharsPerLine = 80;
+    const maxTotalChars = 320; // 4 lines * 80 chars
+    
+    let processedText = text;
+    
+    // If text exceeds capacity, use LIFO (remove from beginning)
+    if (processedText.length > maxTotalChars) {
+      processedText = processedText.slice(processedText.length - maxTotalChars);
+      // Try to start from a word boundary
+      const firstSpaceIndex = processedText.indexOf(' ');
+      if (firstSpaceIndex > 0 && firstSpaceIndex < 10) {
+        processedText = processedText.slice(firstSpaceIndex + 1);
+      }
+    }
+    
     const lines = ['', '', '', ''];
-    const wordsPerLine = 20; // Approximate words per line
-    
-    let lineIndex = 0;
-    let currentLineWords = 0;
+    const words = processedText.split(' ');
+    let currentLine = 0;
+    let currentLineLength = 0;
     
     words.forEach((word) => {
-      if (lineIndex < 4) {
-        if (currentLineWords < wordsPerLine) {
-          lines[lineIndex] += (lines[lineIndex] ? ' ' : '') + word;
-          currentLineWords++;
+      const wordWithSpace = (lines[currentLine] ? ' ' : '') + word;
+      
+      if (currentLine < 4) {
+        if (currentLineLength + wordWithSpace.length <= maxCharsPerLine) {
+          lines[currentLine] += wordWithSpace;
+          currentLineLength += wordWithSpace.length;
         } else {
-          lineIndex++;
-          if (lineIndex < 4) {
-            lines[lineIndex] = word;
-            currentLineWords = 1;
+          // Move to next line
+          currentLine++;
+          if (currentLine < 4) {
+            lines[currentLine] = word;
+            currentLineLength = word.length;
           }
         }
       }
@@ -137,14 +197,23 @@ export function useWhisperSpeech(): WhisperSpeechHook {
   const clearSpeech = useCallback(() => {
     setTranscript('');
     setSpeechLines(['', '', '', '']);
+    finalTranscriptRef.current = '';
   }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopListening();
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+      }
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
-  }, [stopListening]);
+  }, []);
 
   return {
     isListening,
