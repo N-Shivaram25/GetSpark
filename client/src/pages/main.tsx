@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, Plus, MicOff, Trash2 } from "lucide-react";
+import { Mic, Plus, MicOff, Trash2, Brain, Sparkles, Image as ImageIcon } from "lucide-react";
 import SpeechDisplay from "@/components/speech-display";
 import KeywordsModal from "@/components/keywords-modal";
 import ImgKeyModal from "@/components/img-key-modal";
-import { useRealTimeSpeech } from "@/hooks/use-real-time-speech";
+import VoiceToTopicPanel from "@/components/voice-to-topic-panel";
+import { useWhisperSpeech } from "@/hooks/use-whisper-speech";
 import { useKeywords } from "@/hooks/use-keywords";
 import { useKeywordDetection } from "@/hooks/use-keyword-detection";
 import { useImageGeneration } from "@/hooks/use-image-generation";
+import { useVoiceToTopic } from "@/hooks/use-voice-to-topic";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 
 export default function MainPage() {
-  const [currentMode, setCurrentMode] = useState<'keyflow' | 'imgkey'>('keyflow');
+  const [currentMode, setCurrentMode] = useState<'keyflow' | 'imgkey' | 'voicetopic'>('keyflow');
   const [showKeywordsModal, setShowKeywordsModal] = useState(false);
   const [showImgKeyModal, setShowImgKeyModal] = useState(false);
   
@@ -23,8 +25,9 @@ export default function MainPage() {
     startListening, 
     stopListening,
     speechLines,
-    clearSpeech
-  } = useRealTimeSpeech();
+    clearSpeech,
+    isProcessing
+  } = useWhisperSpeech();
   
   // clearSpeech function is now provided by the hook
   
@@ -49,7 +52,7 @@ export default function MainPage() {
   const { detectedKeywords } = useKeywordDetection({
     transcript,
     speechLines,
-    mode: currentMode,
+    mode: currentMode === 'voicetopic' ? 'keyflow' : currentMode,
     onKeywordDetected: handleKeywordDetected
   });
 
@@ -63,64 +66,105 @@ export default function MainPage() {
     queryKey: ['/api/img-key-mappings'],
   });
 
-  const handleModeSwitch = (mode: 'keyflow' | 'imgkey') => {
+  const {
+    currentTopic,
+    isProcessing: isTopicProcessing,
+    isComplexMode,
+    toggleComplexMode,
+    clearTopic
+  } = useVoiceToTopic(transcript);
+
+  const handleModeSwitch = (mode: 'keyflow' | 'imgkey' | 'voicetopic') => {
     setCurrentMode(mode);
     if (mode === 'imgkey') {
       setShowImgKeyModal(true);
     }
+    if (mode !== 'voicetopic') {
+      clearTopic();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
       {/* Header */}
-      <header className="bg-white border-b border-border px-6 py-4 shadow-sm">
+      <header className="relative z-10 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 px-6 py-4 shadow-lg">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg">
-              <Mic className="text-primary-foreground" size={20} />
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <Sparkles className="text-white" size={24} />
             </div>
-            <h2 className="text-2xl font-bold text-foreground">Get Spark</h2>
+            <div>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Get Spark
+              </h2>
+              <p className="text-sm text-slate-500">Voice Interactive Experience</p>
+            </div>
           </div>
 
           {/* Top Right Controls */}
           <div className="flex items-center space-x-4">
             {/* Insert Keywords Button */}
-            <Button
-              variant="outline"
-              onClick={() => setShowKeywordsModal(true)}
-              className="flex items-center space-x-2"
-            >
-              <Plus size={16} />
-              <span>Insert Keywords</span>
-            </Button>
+            {(currentMode === 'keyflow' || currentMode === 'imgkey') && (
+              <Button
+                variant="outline"
+                onClick={() => setShowKeywordsModal(true)}
+                className="flex items-center space-x-2 bg-white/50 backdrop-blur hover:bg-white/80 transition-all"
+              >
+                <Plus size={16} />
+                <span>Insert Keywords</span>
+              </Button>
+            )}
 
             {/* Mode Toggle Buttons */}
-            <div className="flex bg-muted rounded-lg p-1">
+            <div className="flex bg-white/50 backdrop-blur rounded-xl p-1 shadow-lg">
               <Button
                 size="sm"
                 variant={currentMode === 'keyflow' ? 'default' : 'ghost'}
                 onClick={() => handleModeSwitch('keyflow')}
                 className={cn(
-                  "text-sm font-medium transition-colors",
+                  "text-sm font-medium transition-all flex items-center space-x-2 px-4",
                   currentMode === 'keyflow' 
-                    ? "bg-primary text-primary-foreground" 
-                    : "text-foreground hover:bg-accent"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                    : "text-slate-600 hover:bg-white/80"
                 )}
               >
-                Keyflow Mode
+                <Sparkles className="w-4 h-4" />
+                <span>Keyflow</span>
               </Button>
               <Button
                 size="sm"
                 variant={currentMode === 'imgkey' ? 'default' : 'ghost'}
                 onClick={() => handleModeSwitch('imgkey')}
                 className={cn(
-                  "text-sm font-medium transition-colors",
+                  "text-sm font-medium transition-all flex items-center space-x-2 px-4",
                   currentMode === 'imgkey' 
-                    ? "bg-primary text-primary-foreground" 
-                    : "text-foreground hover:bg-accent"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                    : "text-slate-600 hover:bg-white/80"
                 )}
               >
-                Img Key Mode
+                <ImageIcon className="w-4 h-4" />
+                <span>Img Key</span>
+              </Button>
+              <Button
+                size="sm"
+                variant={currentMode === 'voicetopic' ? 'default' : 'ghost'}
+                onClick={() => handleModeSwitch('voicetopic')}
+                className={cn(
+                  "text-sm font-medium transition-all flex items-center space-x-2 px-4",
+                  currentMode === 'voicetopic' 
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                    : "text-slate-600 hover:bg-white/80"
+                )}
+              >
+                <Brain className="w-4 h-4" />
+                <span>Voice Topic</span>
               </Button>
             </div>
           </div>
@@ -158,7 +202,7 @@ export default function MainPage() {
             speechLines={speechLines}
             transcript={transcript}
             isListening={isListening}
-            mode={currentMode}
+            mode={currentMode === 'voicetopic' ? 'keyflow' : currentMode}
             detectedKeywords={detectedKeywords}
           />
         </div>
@@ -242,6 +286,15 @@ export default function MainPage() {
           isOpen={showImgKeyModal}
           onClose={() => setShowImgKeyModal(false)}
           mappings={imgKeyMappings}
+        />
+      )}
+
+      {/* Voice to Topic Panel */}
+      {currentMode === 'voicetopic' && (
+        <VoiceToTopicPanel
+          currentTopic={currentTopic}
+          isProcessing={isTopicProcessing || isProcessing}
+          onComplexToggle={toggleComplexMode}
         />
       )}
     </div>

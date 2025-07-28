@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { enhanceTextAccuracy } from "./openai-speech";
+import { transcribeAudioWithWhisper, correctGrammarWithLanguageTool } from "./whisper-service";
+import { searchImagesRapidAPI, getTopicInfoWithGemini } from "./rapid-api-service";
 import { insertKeywordSchema, insertImgKeyMappingSchema } from "@shared/schema";
 import { generateImageWithClipDrop } from "./clipdrop";
 import { generateImageWithDeepAI } from "./deepai";
@@ -275,6 +277,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(imageBuffer);
     } catch (error) {
       res.status(500).json({ message: "Failed to serve image" });
+    }
+  });
+
+  // New Whisper Speech-to-Text API
+  app.post("/api/speech/transcribe", upload.single('audio'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "Audio file is required" });
+      }
+
+      console.log('Processing audio file for Whisper transcription...');
+      const result = await transcribeAudioWithWhisper(req.file.buffer);
+      
+      // Optional grammar correction with LanguageTool
+      let finalText = result.correctedText;
+      try {
+        finalText = await correctGrammarWithLanguageTool(result.correctedText);
+      } catch (grammarError) {
+        console.log('LanguageTool correction failed, using OpenAI corrected text');
+      }
+
+      res.json({
+        text: result.text,
+        correctedText: finalText,
+        confidence: result.confidence
+      });
+    } catch (error) {
+      console.error('Speech transcription error:', error);
+      res.status(500).json({ error: "Failed to transcribe audio" });
+    }
+  });
+
+  // Grammar correction endpoint
+  app.post("/api/correct-grammar", async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text || typeof text !== 'string') {
+        return res.status(400).json({ error: "Text is required" });
+      }
+
+      const correctedText = await correctGrammarWithLanguageTool(text);
+      res.json({ 
+        originalText: text,
+        correctedText,
+        success: true 
+      });
+    } catch (error) {
+      console.error('Grammar correction error:', error);
+      res.status(500).json({ 
+        error: "Failed to correct grammar",
+        success: false 
+      });
+    }
+  });
+
+  // Voice to Topic Mode API - Search Images
+  app.post("/api/voice-to-topic/images", async (req, res) => {
+    try {
+      const { topic } = req.body;
+      
+      if (!topic || typeof topic !== 'string') {
+        return res.status(400).json({ error: "Topic is required" });
+      }
+
+      console.log(`Searching images for topic: ${topic}`);
+      const images = await searchImagesRapidAPI(topic);
+      
+      res.json({ images, topic });
+    } catch (error) {
+      console.error('Image search error:', error);
+      res.status(500).json({ 
+        error: "Failed to search images",
+        images: []
+      });
+    }
+  });
+
+  // Voice to Topic Mode API - Get Topic Info
+  app.post("/api/voice-to-topic/info", async (req, res) => {
+    try {
+      const { topic, isComplex = false } = req.body;
+      
+      if (!topic || typeof topic !== 'string') {
+        return res.status(400).json({ error: "Topic is required" });
+      }
+
+      console.log(`Getting ${isComplex ? 'complex' : 'basic'} info for topic: ${topic}`);
+      const topicInfo = await getTopicInfoWithGemini(topic, isComplex);
+      
+      res.json({ ...topicInfo, topic, isComplex });
+    } catch (error) {
+      console.error('Topic info error:', error);
+      res.status(500).json({ 
+        error: "Failed to get topic information",
+        definition: `${req.body.topic || 'Topic'} information unavailable`,
+        basicCode: "",
+        complexCode: "",
+        language: "javascript"
+      });
     }
   });
 

@@ -31,3 +31,24 @@ export type Keyword = typeof keywords.$inferSelect;
 
 export type InsertImgKeyMapping = z.infer<typeof insertImgKeyMappingSchema>;
 export type ImgKeyMapping = typeof imgKeyMappings.$inferSelect;
+
+// Voice to Topic Mode schemas
+export const voiceToTopicResults = pgTable("voice_to_topic_results", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  topic: text("topic").notNull(),
+  definition: text("definition"),
+  basicCode: text("basic_code"),
+  complexCode: text("complex_code"),
+  language: text("language").default("javascript"),
+  images: json("images").$type<Array<{url: string; title: string; source: string}>>().notNull().default([]),
+  isComplex: boolean("is_complex").default(false),
+  createdAt: varchar("created_at").default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const insertVoiceToTopicResultSchema = createInsertSchema(voiceToTopicResults).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertVoiceToTopicResult = z.infer<typeof insertVoiceToTopicResultSchema>;
+export type VoiceToTopicResult = typeof voiceToTopicResults.$inferSelect;

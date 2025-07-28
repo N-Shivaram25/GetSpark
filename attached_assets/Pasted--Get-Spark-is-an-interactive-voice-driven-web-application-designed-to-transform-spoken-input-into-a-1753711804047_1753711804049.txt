@@ -1,0 +1,148 @@
+“Get Spark” is an interactive voice-driven web application designed to transform spoken input into a visually rich and dynamic display of sentences and images. The experience begins with a minimalist landing page, where the name **“Get Spark”** is prominently displayed, followed by a striking black **“Get Started”** button. Upon clicking this button, users are taken to the main interaction interface, which provides two intelligent modes of operation: **Keyflow Mode** and **Img Key Mode**, both of which focus on capturing speech and linking it with visual output in real time.
+
+At the top right corner of the interaction page, users can access Key flow Mode and Img Key Mode. This feature allows them to input words or full sentences one at a time, which will be used for triggering visuals. Once the input process is complete, the **Done** button finalizes the entry. Here Project Involving users to switch between the primary functionalities of the application.
+
+In **Keyflow Mode**, once the user has inserted keywords, the application listens to their voice input and dynamically forms and displays the spoken sentences at the top of the page. These sentences are shown within a fixed, bordered box that holds a maximum of four lines. As the speaker continues, the sentences scroll in a typewriter-like fashion: when the fourth line is reached, any new text is appended at the end of the 4th line, pushing existing content upward. The oldest line (the first) is automatically removed to maintain the four-line limit. If any of the predefined keywords are detected during speech — and if it’s the first time that Input keywords/sentences has been spoken — the application uses the ClipDrop API to fetch and display a relevant image directly below the sentence box. This image appears only once for each keyword and remains visible for a default duration of 20 seconds, after which it disappears. You can Adjust the Time Manually for Appearing of Images. Here you add one button at left side of the Sentence box , a small button Translate .Here If someone click the button translation of live voice into that particular language should be generated with high accuracy.
+
+**Img Key Mode** provides greater customization, enabling users to map their own images to specific keywords or sentences. The interface includes a dual-box setup — one to insert the keyword and another to upload one or more images. Additional controls let the user set the duration (in seconds) for which each image should appear and enable a bullet point option for to keep the spoken sentence/keyword in a bullet point. During speech recognition in this mode, sentences are again displayed in the Four-line box, similar to Keyflow Mode. However, if a keyword that has been mapped is detected, the matched sentence is shown as a bullet point if the option was selected. A two-line space appears below the sentence box to visually separate bullet points, and mapped images appear below them with a one-line space. If multiple images are assigned to a single keyword, they are displayed side by side. The sentence box intelligently resizes to accommodate the bullet points and images, ensuring that layout and readability remain clear and elegant.
+
+A standout feature of “Get Spark” is its ability to correct spoken input on the fly. Whether the user mispronounces a word, speaks with grammatical errors, or phrases a sentence incorrectly, the system intelligently interprets and corrects the input—mimicking the natural correction style of ChatGPT. This ensures that the displayed content is grammatically accurate and well-formed, regardless of how the user speaks.
+
+Here Most of the functionalities are already Implemented. Make sure the above functionalities are working perfectly .
+As per some of the flaws have been detected as "In Key Flow Mode the sentences are forming but sometimes in middle the sentences are getting stopped and not forming exact sentences what I spoke ."Here Speech to Text is happening with Open API Key". Another issue is Image is not at all forming when the keyword is detected in Key flow Mode. The Image should form when the Input keyword or sentence is detected using Clipdrop API key. I also want you to connect My Open Ai ApI key  with Whisper AI using below steps :
+🔹 Step 2: Prepare Audio File
+Accept user voice input in your app and convert it to .mp3, .wav, or .m4a.
+
+Save or record the audio in the browser using MediaRecorder.
+
+🔹 Step 3: Send Audio to Whisper API
+Use JavaScript and fetch() or curl to send the audio:
+
+Example using fetch (in browser or Node.js):
+
+const formData = new FormData();
+formData.append("file", yourAudioBlob, "audio.mp3");
+formData.append("model", "whisper-1");
+
+const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer YOUR_OPENAI_API_KEY"
+  },
+  body: formData
+});
+
+const result = await response.json();
+console.log("Transcription:", result.text);
+🔹 Step 4: Use Transcribed Text
+Extract result.text
+
+Match with your keywords or sentences
+
+Trigger image generation (e.g., with ClipDrop API)
+
+🔹 Step 5 (Optional): Use gpt-4o-transcribe (newer model)
+You can replace "whisper-1" with "gpt-4o-transcribe" for even better accuracy:
+
+formData.append("model", "gpt-4o-transcribe");
+
+And I also want you to correct Grammar Automatically using https://api.languagetoolplus.com/v2/check
+ but dont show the status of correction percentage.
+
+And I want you create New Mode Request: "Voice to Topic" Mode for 'Get Spark' Project
+I would like to add a new mode called "Voice to Topic" to the Get Spark project. This mode should allow users to speak about any technical or educational topic, and in real-time, it should intelligently fetch and display:
+
+Images related to the topic
+
+Short explanations or definitions
+
+Basic programming examples
+
+If the user speaks phrases like “let’s take a complex example”, it should dynamically replace the basic code with a more advanced or complex program.
+
+🔧 Core Features & Requirements
+1. 🎤 Voice Recognition
+Use speech-to-text (OpenAI Whisper or similar) to continuously listen and convert speech into text.
+
+Parse and extract the main topic or keyword from the spoken input.
+
+2. 🖼️ Real-Time Image Search via RapidAPI
+API Used: Real-Time Image Search API (RapidAPI)
+
+Endpoint:
+
+bash
+Copy
+Edit
+GET https://real-time-image-search.p.rapidapi.com/search?query=YOUR_TOPIC
+Headers:
+
+bash
+Copy
+Edit
+x-rapidapi-host: real-time-image-search.p.rapidapi.com
+x-rapidapi-key: 9917409282mshf2bf2374faf2950p1dea8bjsn1ec7ed4fb67d
+Use this to fetch at least 3 relevant images about the spoken topic in real-time.
+
+3. 📘 Voice to Web Info + Code (via Gemini Pro API)
+API Used: Gemini Pro AI from RapidAPI
+
+Endpoint:
+
+bash
+Copy
+Edit
+POST https://gemini-pro-ai.p.rapidapi.com/
+Payload Format:
+
+json
+Copy
+Edit
+{
+  "contents": [
+    { "role": "user", "parts": [{ "text": "What is Arrays in programming?" }] }
+  ]
+}
+Headers:
+
+bash
+Copy
+Edit
+Content-Type: application/json
+x-rapidapi-host: gemini-pro-ai.p.rapidapi.com
+x-rapidapi-key: 9917409282mshf2bf2374faf2950p1dea8bjsn1ec7ed4fb67d
+Based on the recognized topic, fetch:
+
+Short definition or explanation
+
+Basic code snippet
+
+If speech includes phrases like “take one complex example”, call Gemini Pro again with modified prompt to get a more complex or real-world code snippet.
+
+4. 🖱️ Dynamic & Interactive UI
+Interface should behave like a cursor-enabled side panel or sliding console on the right.
+
+Results should appear in a scrollable and expandable panel:
+
+Top: Recognized Topic Title
+
+Middle: Images
+
+Bottom: Explanation & Code (basic → complex based on voice)
+
+Should support real-time updating as the user continues speaking.
+
+🔁 Optional Switches & Toggles
+Voice to Web Info Toggle: User can enable/disable this mode via a toggle.
+
+If disabled, only image results are shown.
+Atlast I want you change the complete UI with Ultimate Design and layouts and Background Images.
+
+
+     
+   
+
+
+
+
+
