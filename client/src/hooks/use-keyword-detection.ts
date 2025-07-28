@@ -95,34 +95,40 @@ export function useKeywordDetection({ transcript, speechLines, mode, onKeywordDe
       });
     } else if (mode === 'imgkey') {
       // Enhanced keyword detection for Img Key mode
-      (imgKeyMappings as any[]).forEach((mapping: any) => {
-        const keyword = mapping.keyword.toLowerCase();
-        
-        // Use same enhanced matching strategy
-        let isKeywordFound = false;
-        
-        if (keyword.split(' ').length === 1) {
-          const wordBoundaryRegex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
-          isKeywordFound = wordBoundaryRegex.test(allText);
-        } else {
-          const phraseRegex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-          isKeywordFound = phraseRegex.test(allText);
-        }
-        
-        // Check if keyword exists in the text and hasn't been triggered yet
-        if (isKeywordFound && !triggeredImages.has(keyword)) {
-          console.log(`Detected keyword in Img Key mode: ${mapping.keyword} (${keyword})`);
+      console.log('Img Key mappings:', imgKeyMappings);
+      
+      if (imgKeyMappings && Array.isArray(imgKeyMappings) && imgKeyMappings.length > 0) {
+        imgKeyMappings.forEach((mapping: any) => {
+          const keyword = mapping.keyword.toLowerCase();
           
-          setDetectedKeywords(prev => [...prev, { 
-            keyword: mapping.keyword, 
-            timestamp: currentTime 
-          }]);
-          setTriggeredImages(prev => new Set(Array.from(prev).concat(keyword)));
+          // Use same enhanced matching strategy
+          let isKeywordFound = false;
           
-          // Trigger custom image display with mapping duration
-          onKeywordDetected(mapping.keyword, 'imgkey', mapping.duration || 6);
-        }
-      });
+          if (keyword.split(' ').length === 1) {
+            const wordBoundaryRegex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+            isKeywordFound = wordBoundaryRegex.test(allText);
+          } else {
+            const phraseRegex = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+            isKeywordFound = phraseRegex.test(allText);
+          }
+          
+          // Check if keyword exists in the text and hasn't been triggered yet
+          if (isKeywordFound && !triggeredImages.has(keyword)) {
+            console.log(`Detected keyword in Img Key mode: ${mapping.keyword} (${keyword})`);
+            
+            setDetectedKeywords(prev => [...prev, { 
+              keyword: mapping.keyword, 
+              timestamp: currentTime 
+            }]);
+            setTriggeredImages(prev => new Set(Array.from(prev).concat(keyword)));
+            
+            // Trigger custom image display with mapping duration
+            onKeywordDetected(mapping.keyword, 'imgkey', mapping.duration || 6);
+          }
+        });
+      } else {
+        console.log('No Img Key mappings found - user needs to upload images and keywords');
+      }
     }
   }, [transcript, speechLines, keywords, imgKeyMappings, mode, triggeredImages, onKeywordDetected]);
 
