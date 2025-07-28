@@ -35,21 +35,21 @@
   width: 90px;
   height: 90px;
   animation-delay: 0s;
-  border-color: rgba(34, 197, 94, 0.6);
+  border-color: rgba(139, 92, 246, 0.6);
 }
 
 .mic-circle:nth-child(2) {
   width: 120px;
   height: 120px;
   animation-delay: 0.8s;
-  border-color: rgba(34, 197, 94, 0.4);
+  border-color: rgba(236, 72, 153, 0.4);
 }
 
 .mic-circle:nth-child(3) {
   width: 150px;
   height: 150px;
   animation-delay: 1.6s;
-  border-color: rgba(34, 197, 94, 0.2);
+  border-color: rgba(16, 185, 129, 0.3);
 }
 
 @keyframes enhanced-wave-animation {
@@ -66,6 +66,43 @@
     transform: translate(-50%, -50%) scale(1.8);
     opacity: 0;
     border-width: 1px;
+  }
+}
+
+.voice-button-listening {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6);
+  box-shadow: 
+    0 0 25px rgba(139, 92, 246, 0.7), 
+    0 0 50px rgba(99, 102, 241, 0.4),
+    inset 0 0 20px rgba(255, 255, 255, 0.1);
+  animation: rainbow-pulse 3s ease-in-out infinite;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes rainbow-pulse {
+  0% {
+    background: linear-gradient(135deg, #8b5cf6, #6366f1, #3b82f6);
+    box-shadow: 
+      0 0 25px rgba(139, 92, 246, 0.7), 
+      0 0 50px rgba(99, 102, 241, 0.4),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+    transform: scale(1);
+  }
+  50% {
+    background: linear-gradient(135deg, #ec4899, #f97316, #eab308);
+    box-shadow: 
+      0 0 35px rgba(236, 72, 153, 0.8), 
+      0 0 70px rgba(249, 115, 22, 0.5),
+      inset 0 0 25px rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+  }
+  100% {
+    background: linear-gradient(135deg, #10b981, #06b6d4, #8b5cf6);
+    box-shadow: 
+      0 0 30px rgba(16, 185, 129, 0.7), 
+      0 0 60px rgba(6, 182, 212, 0.4),
+      inset 0 0 22px rgba(255, 255, 255, 0.12);
+    transform: scale(1);
   }
 }
 

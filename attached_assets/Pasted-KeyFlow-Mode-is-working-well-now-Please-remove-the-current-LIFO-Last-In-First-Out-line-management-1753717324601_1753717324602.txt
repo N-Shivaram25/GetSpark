@@ -1,0 +1,46 @@
+KeyFlow Mode is working well now. Please remove the current LIFO (Last-In-First-Out) line management. Instead, display the spoken lines sequentially from the first to the fourth line, and then start again from the top (first line) after reaching the fourth.
+Here Img Key Mode is not working Properly , when I have uploaded the Images for one keyword or sentence .It is detecting the keyword but not showing the uploaded Image  and continuously the sentences are not appearing as in the key flow mode. And Voice to Topic Mode not at all performing anything.Make sure Each Mode is a new Mode ,hence switching from one mode to another mode involve fresh blank box of 4 lines. change the Green color Animation of Mic with some design.
+
+When I want to Deploy using app.netlify.com , it is showing error as 
+Page not found. Looks like you’ve followed a broken link or entered a URL that doesn’t exist on this site.
+
+on your Netlify site, it means Netlify could not find a file to serve for the requested URL. This is a common issue and can be caused by several factors. Here are the main troubleshooting steps you should follow:
+
+Check Your Publish Directory
+Make sure you are publishing the correct folder. For example, if your build process outputs files to a dist or build folder, you need to set that as your publish directory in your site settings. If you deploy from a subfolder but don’t set the publish directory, Netlify won’t find your files and will serve a 404 page. You can adjust this in your site’s deploy settings:
+Configuration > Build & deploy > Build settings
+Support Guide: Page not found
+Error: Page not found
+
+Check for an index.html at the Root
+Netlify expects an index.html file at the root of your publish directory. If your index.html is inside a subfolder (like /src/index.html), it won’t be found at the root URL. Move it to the root of your publish directory or adjust your build process accordingly.
+Page not found - 404 error
+
+Single Page Application (SPA) Routing
+If you’re using a framework like React, Vue, or Angular that uses client-side routing, you need to add a redirect rule so that all routes serve your index.html. Add a file called _redirects to your public (or equivalent) folder with this line:
+
+/* /index.html 200
+Or, in netlify.toml:
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
+Support Guide: SPA redirect rule missing
+Page not found error in other pages
+Error "Page Not Found" with React.js
+
+Check Deployed Files
+Use the Deploy File Explorer to see exactly what files were deployed. This helps confirm if your build output is as expected.
+
+Other Causes
+
+If you’re using server-side rendering or edge functions, ensure your configuration is correct.
+If assets are missing, check their paths and your build configuration.
+For form submissions, make sure you have a success page configured.
+For more detailed troubleshooting, visit the official Netlify support guide for "Page not found" errors and the Netlify troubleshooting docs.
+
+If you continue to have issues, please provide your site name, a link to your repository, and details about your build settings for more specific help.
+
+How to to deploy this project as i have pushed my code to GitHub.
+

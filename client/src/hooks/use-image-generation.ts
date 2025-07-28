@@ -45,8 +45,21 @@ export function useImageGeneration() {
     return () => clearInterval(interval);
   }, []);
 
-  const generateImage = (keyword: string, duration: number = 6) => {
-    generateImageMutation.mutate({ keyword, duration });
+  const generateImage = (keyword: string, duration: number = 6, customImageUrl?: string) => {
+    if (customImageUrl) {
+      // Display custom uploaded image directly
+      const newImage: DisplayedImage = {
+        id: Date.now().toString(),
+        url: customImageUrl,
+        keyword,
+        timeLeft: duration,
+        source: 'custom'
+      };
+      setDisplayedImages(prev => [...prev, newImage]);
+    } else {
+      // Generate AI image
+      generateImageMutation.mutate({ keyword, duration });
+    }
   };
 
   return {

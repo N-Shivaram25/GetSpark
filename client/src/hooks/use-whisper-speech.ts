@@ -113,41 +113,39 @@ export function useWhisperSpeech(): WhisperSpeechHook {
       return;
     }
     
-    // Character-based approach for better text flow
+    // Sequential line filling: fill lines 1-4, then restart from line 1
     const maxCharsPerLine = 80;
-    const maxTotalChars = 320; // 4 lines * 80 chars
-    
-    let processedText = text;
-    
-    // If text exceeds capacity, use LIFO (remove from beginning)
-    if (processedText.length > maxTotalChars) {
-      processedText = processedText.slice(processedText.length - maxTotalChars);
-      // Try to start from a word boundary
-      const firstSpaceIndex = processedText.indexOf(' ');
-      if (firstSpaceIndex > 0 && firstSpaceIndex < 10) {
-        processedText = processedText.slice(firstSpaceIndex + 1);
-      }
-    }
-    
+    const words = text.split(' ');
     const lines = ['', '', '', ''];
-    const words = processedText.split(' ');
     let currentLine = 0;
     let currentLineLength = 0;
+    let totalWords = 0;
     
-    words.forEach((word) => {
+    // Calculate how many complete cycles we need to skip
+    const wordsPerCycle = words.length;
+    const linesPerCycle = 4;
+    const wordsProcessed = Math.floor(totalWords / (maxCharsPerLine * linesPerCycle)) * (maxCharsPerLine * linesPerCycle);
+    
+    words.forEach((word, index) => {
       const wordWithSpace = (lines[currentLine] ? ' ' : '') + word;
       
-      if (currentLine < 4) {
-        if (currentLineLength + wordWithSpace.length <= maxCharsPerLine) {
-          lines[currentLine] += wordWithSpace;
-          currentLineLength += wordWithSpace.length;
+      if (currentLineLength + wordWithSpace.length <= maxCharsPerLine) {
+        lines[currentLine] += wordWithSpace;
+        currentLineLength += wordWithSpace.length;
+      } else {
+        // Move to next line, cycle back to line 0 after line 3
+        currentLine = (currentLine + 1) % 4;
+        
+        // If we're back to line 0, clear all lines to start fresh
+        if (currentLine === 0) {
+          lines[0] = word;
+          lines[1] = '';
+          lines[2] = '';
+          lines[3] = '';
+          currentLineLength = word.length;
         } else {
-          // Move to next line
-          currentLine++;
-          if (currentLine < 4) {
-            lines[currentLine] = word;
-            currentLineLength = word.length;
-          }
+          lines[currentLine] = word;
+          currentLineLength = word.length;
         }
       }
     });

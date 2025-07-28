@@ -45,8 +45,16 @@ export default function MainPage() {
     console.log(`Keyword detected: ${keyword} in mode: ${mode}, duration: ${duration || 6}`);
     if (mode === 'keyflow') {
       generateImage(keyword, duration || 6);
+    } else if (mode === 'imgkey') {
+      // Find the mapping and display the uploaded image
+      const mapping = imgKeyMappings.find(m => 
+        m.keyword.toLowerCase() === keyword.toLowerCase()
+      );
+      if (mapping && mapping.imageUrls.length > 0) {
+        const imageUrl = `/api/images/${mapping.imageUrls[0]}`;
+        generateImage(keyword, duration || 6, imageUrl);
+      }
     }
-    // For imgkey mode, we'll implement custom image display later
   };
   
   const { detectedKeywords } = useKeywordDetection({
@@ -79,6 +87,9 @@ export default function MainPage() {
     if (isListening) {
       stopListening();
     }
+    
+    // Clear speech display for fresh start in new mode
+    clearSpeech();
     
     setCurrentMode(mode);
     if (mode === 'imgkey') {
@@ -309,9 +320,10 @@ export default function MainPage() {
       {/* Voice to Topic Panel */}
       {currentMode === 'voicetopic' && (
         <VoiceToTopicPanel
-          currentTopic={currentTopic}
+          currentTopic={currentTopic || ''}
           isProcessing={isTopicProcessing || isProcessing}
           onComplexToggle={toggleComplexMode}
+          className="fixed right-4 top-20 bottom-20 w-96 z-40"
         />
       )}
     </div>
